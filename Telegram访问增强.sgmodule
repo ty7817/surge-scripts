@@ -1,0 +1,95 @@
+#!name=Telegram访问增强
+#!desc=Telegram全流量优化：MTProto IP段+ASN+域名+进程匹配+连接加速，确保电报稳定快速
+#!author=综合优化版
+#!category=网络优化
+#!date=2026-10-23
+
+# ============================================
+# 【使用说明】
+# 1. 本模组会将所有Telegram流量导向「📱 Telegram」策略组
+# 2. 请在Surge配置中创建名为「📱 Telegram」的策略组（select类型）
+# 3. 策略组内添加你的节点，建议选择延迟低、稳定的节点
+# 4. Telegram使用MTProto协议直连IP，IP-CIDR和IP-ASN规则是关键
+# 5. 已包含force-http-engine优化，提升连接稳定性
+# ============================================
+
+[Rule]
+# ===== Telegram域名（22个后缀+2个精确+1个关键词）=====
+DOMAIN,api.imem.app,📱 Telegram
+DOMAIN,api.swiftgram.app,📱 Telegram
+DOMAIN-SUFFIX,cdn-telegram.org,📱 Telegram
+DOMAIN-SUFFIX,comments.app,📱 Telegram
+DOMAIN-SUFFIX,contest.com,📱 Telegram
+DOMAIN-SUFFIX,graph.org,📱 Telegram
+DOMAIN-SUFFIX,legra.ph,📱 Telegram
+DOMAIN-SUFFIX,mbrx.app,📱 Telegram
+DOMAIN-SUFFIX,quiz.directory,📱 Telegram
+DOMAIN-SUFFIX,stel.com,📱 Telegram
+DOMAIN-SUFFIX,t.me,📱 Telegram
+DOMAIN-SUFFIX,tdesktop.com,📱 Telegram
+DOMAIN-SUFFIX,telega.one,📱 Telegram
+DOMAIN-SUFFIX,telegra.ph,📱 Telegram
+DOMAIN-SUFFIX,telegram-cdn.org,📱 Telegram
+DOMAIN-SUFFIX,telegram.dog,📱 Telegram
+DOMAIN-SUFFIX,telegram.me,📱 Telegram
+DOMAIN-SUFFIX,telegram.org,📱 Telegram
+DOMAIN-SUFFIX,telegram.space,📱 Telegram
+DOMAIN-SUFFIX,telegramdownload.com,📱 Telegram
+DOMAIN-SUFFIX,telesco.pe,📱 Telegram
+DOMAIN-SUFFIX,tg.dev,📱 Telegram
+DOMAIN-SUFFIX,tx.me,📱 Telegram
+DOMAIN-SUFFIX,usercontent.dev,📱 Telegram
+DOMAIN-KEYWORD,nicegram,📱 Telegram
+
+# ===== Telegram MTProto IP段（核心！直连IP不走域名）=====
+IP-CIDR,109.239.140.0/24,📱 Telegram,no-resolve
+IP-CIDR,139.59.210.98/32,📱 Telegram,no-resolve
+IP-CIDR,149.154.160.0/20,📱 Telegram,no-resolve
+IP-CIDR,196.55.216.167/32,📱 Telegram,no-resolve
+IP-CIDR,5.28.192.0/18,📱 Telegram,no-resolve
+IP-CIDR,91.108.0.0/16,📱 Telegram,no-resolve
+
+# ===== Telegram IPv6段 =====
+IP-CIDR6,2001:67c:4e8::/48,📱 Telegram,no-resolve
+IP-CIDR6,2001:b28:f23c::/47,📱 Telegram,no-resolve
+IP-CIDR6,2001:b28:f23f::/48,📱 Telegram,no-resolve
+IP-CIDR6,2a0a:f280::/29,📱 Telegram,no-resolve
+
+# ===== Telegram ASN（数据中心自治系统号）=====
+IP-ASN,211157,📱 Telegram,no-resolve
+IP-ASN,44907,📱 Telegram,no-resolve
+IP-ASN,59930,📱 Telegram,no-resolve
+IP-ASN,62014,📱 Telegram,no-resolve
+IP-ASN,62041,📱 Telegram,no-resolve
+
+# ===== Telegram客户端进程匹配（iOS/macOS/Android）=====
+PROCESS-NAME,nekox.messenger,📱 Telegram
+PROCESS-NAME,org.telegram.messenger,📱 Telegram
+PROCESS-NAME,telegram-desktop,📱 Telegram
+PROCESS-NAME,tw.nekomimi.nekogram,📱 Telegram
+PROCESS-NAME,xyz.nextalone.nagram,📱 Telegram
+
+# ===== Telegram Web WSS endpoints =====
+DOMAIN,zws1.web.telegram.org,📱 Telegram
+DOMAIN,zws1-1.web.telegram.org,📱 Telegram
+DOMAIN,zws2.web.telegram.org,📱 Telegram
+DOMAIN,zws2-1.web.telegram.org,📱 Telegram
+DOMAIN,zws3.web.telegram.org,📱 Telegram
+DOMAIN,zws3-1.web.telegram.org,📱 Telegram
+DOMAIN,zws4.web.telegram.org,📱 Telegram
+DOMAIN,zws4-1.web.telegram.org,📱 Telegram
+DOMAIN,zws5.web.telegram.org,📱 Telegram
+DOMAIN,zws5-1.web.telegram.org,📱 Telegram
+
+[General]
+# 强制HTTP引擎处理Telegram域名，提升连接稳定性
+force-http-engine-hosts = %APPEND% *.telegram.org, *.t.me, *.telegra.ph, *.telegram-cdn.org, *.telesco.pe, *.cdn-telegram.org, web.telegram.org
+
+# Telegram域名始终使用真实IP解析，避免DNS污染
+always-real-ip = %APPEND% *.telegram.org, *.t.me, *.telegra.ph, *.telegram-cdn.org, *.telesco.pe, *.cdn-telegram.org
+
+[MITM]
+# Telegram Web需要MITM解密WSS连接
+hostname = %APPEND% web.telegram.org, *.web.telegram.org
+enable = true
+skip-server-cert-verify = true
