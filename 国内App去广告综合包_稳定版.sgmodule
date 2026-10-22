@@ -1,0 +1,178 @@
+#!name=国内App去广告综合包_稳定版
+#!desc=修复断网问题：移除推送/统计SDK拦截，移除过时抖音重写，仅拦截明确广告平台，防检测不影响正常使用
+#!author=综合优化版 v3 稳定版
+#!category=去广告
+#!date=2026-10-23
+
+# ============================================
+# 【v3稳定版修复说明】
+# 1. 移除所有推送/统计SDK拦截（umeng/getui/jpush/mob/openinstall等）
+#    → 这些是App基础功能，拦截会导致抖音等App无法连网
+# 2. 移除过时的抖音URL重写（amemv.com→snssdk.com）
+#    → 抖音API已更新，旧重写导致连接失败
+# 3. 仅保留明确的广告平台域名拦截
+# 4. 保留开屏广告关键词拦截（精确匹配，误拦截率低）
+# 5. 保留微博/抖音/小红书/微信/百度脚本（仅修改响应体，不影响连接）
+# ============================================
+
+[Rule]
+# ===== 广告平台拦截（仅拦截明确广告域名，不碰统计/推送SDK）=====
+
+# 字节跳动/穿山甲广告
+DOMAIN-KEYWORD,pangle,REJECT,extended-matching,pre-matching
+DOMAIN-KEYWORD,pangolin,REJECT,extended-matching,pre-matching
+DOMAIN-SUFFIX,pangle.io,REJECT,extended-matching,pre-matching
+DOMAIN-SUFFIX,byteadverts.com,REJECT,extended-matching,pre-matching
+DOMAIN-SUFFIX,ctobsnssdk.com,REJECT,extended-matching,pre-matching
+DOMAIN-SUFFIX,bds.snssdk.com,REJECT,extended-matching,pre-matching
+DOMAIN,extlog.snssdk.com,REJECT,extended-matching,pre-matching
+DOMAIN,mcs.snssdk.com,REJECT,extended-matching,pre-matching
+DOMAIN,lf-ad-ies.bytecdn.cn,REJECT,extended-matching,pre-matching
+DOMAIN-KEYWORD,-ad-sign.byteimg.com,REJECT,extended-matching,pre-matching
+DOMAIN-KEYWORD,asiad.byteactivity,REJECT,extended-matching,pre-matching
+
+# 百度广告
+DOMAIN,afd.baidu.com,REJECT,extended-matching,pre-matching
+DOMAIN,als.baidu.com,REJECT,extended-matching,pre-matching
+DOMAIN,bgg.baidu.com,REJECT,extended-matching,pre-matching
+DOMAIN,cpro.baidustatic.com,REJECT,extended-matching,pre-matching
+DOMAIN,mobads.baidu.com,REJECT,extended-matching,pre-matching
+DOMAIN,mobads-logs.baidu.com,REJECT,extended-matching,pre-matching
+DOMAIN,wn.pos.baidu.com,REJECT,extended-matching,pre-matching
+DOMAIN-SUFFIX,union.baidu.com,REJECT,extended-matching,pre-matching
+DOMAIN-SUFFIX,union.baidu.cn,REJECT,extended-matching,pre-matching
+DOMAIN,dig.bdurl.net,REJECT,extended-matching,pre-matching
+
+# 腾讯广告/优量汇
+DOMAIN-SUFFIX,gdt.qq.com,REJECT,extended-matching,pre-matching
+DOMAIN-SUFFIX,l.qq.com,REJECT,extended-matching,pre-matching
+DOMAIN,sdk.e.qq.com,REJECT,extended-matching,pre-matching
+DOMAIN,tangram.e.qq.com,REJECT,extended-matching,pre-matching
+DOMAIN,pgdt.gtimg.cn,REJECT,extended-matching,pre-matching
+DOMAIN,pgdt.ugdtimg.com,REJECT,extended-matching,pre-matching
+DOMAIN,qzs.gdtimg.com,REJECT,extended-matching,pre-matching
+DOMAIN,qzs.qq.com,REJECT,extended-matching,pre-matching
+DOMAIN,adsmind.gdtimg.com,REJECT,extended-matching,pre-matching
+DOMAIN,adsmind.ugdtimg.com,REJECT,extended-matching,pre-matching
+DOMAIN-SUFFIX,ugdtimg.com,REJECT,extended-matching,pre-matching
+DOMAIN-SUFFIX,imtmp.net,REJECT,extended-matching,pre-matching
+DOMAIN,tmead.y.qq.com,REJECT,extended-matching,pre-matching
+DOMAIN,tmeadbak.y.qq.com,REJECT,extended-matching,pre-matching
+DOMAIN,tmeadcomm.y.qq.com,REJECT,extended-matching,pre-matching
+
+# 快手广告
+DOMAIN,gdfp.gifshow.com,REJECT,extended-matching,pre-matching
+DOMAIN,open.e.kuaishou.com,REJECT,extended-matching,pre-matching
+DOMAIN,open.e.kuaishou.cn,REJECT,extended-matching,pre-matching
+DOMAIN,adtrack.e.kuaishou.com,REJECT,extended-matching,pre-matching
+DOMAIN-SUFFIX,partner.gifshow.com,REJECT,extended-matching,pre-matching
+DOMAIN-SUFFIX,adukwai.com,REJECT,extended-matching,pre-matching
+DOMAIN-SUFFIX,adkwai.com,REJECT,extended-matching,pre-matching
+
+# 阿里广告（仅广告域名，不碰友盟统计）
+DOMAIN,et.tanx.com,REJECT,extended-matching,pre-matching
+DOMAIN,df.tanx.com,REJECT,extended-matching,pre-matching
+DOMAIN,opehs.tanx.com,REJECT,extended-matching,pre-matching
+DOMAIN,beacon-api.aliyuncs.com,REJECT,extended-matching,pre-matching
+DOMAIN,ossgw.alicdn.com,REJECT,extended-matching,pre-matching
+DOMAIN,hudong.alicdn.com,REJECT,extended-matching,pre-matching
+
+# 网易广告
+DOMAIN,nex.163.com,REJECT,extended-matching,pre-matching
+DOMAIN,iad.g.163.com,REJECT,extended-matching,pre-matching
+
+# 小米广告
+DOMAIN-SUFFIX,ad.xiaomi.com,REJECT,extended-matching,pre-matching
+
+# 美团广告
+DOMAIN,al-log.d.meituan.net,REJECT,extended-matching,pre-matching
+
+# 京东广告
+DOMAIN,dsp-x.jd.com,REJECT,extended-matching,pre-matching
+DOMAIN,im-x.jd.com,REJECT,extended-matching,pre-matching
+
+# 第三方广告平台
+DOMAIN-SUFFIX,inmobi.com,REJECT,extended-matching,pre-matching
+DOMAIN-SUFFIX,inmobi.cn,REJECT,extended-matching,pre-matching
+DOMAIN-SUFFIX,applovin.com,REJECT,extended-matching,pre-matching
+DOMAIN-SUFFIX,tapjoy.com,REJECT,extended-matching,pre-matching
+DOMAIN-SUFFIX,doubleclick.net,REJECT,extended-matching,pre-matching
+DOMAIN-SUFFIX,googlesyndication-cn.com,REJECT,extended-matching,pre-matching
+DOMAIN-SUFFIX,amazon-adsystem.com,REJECT,extended-matching,pre-matching
+DOMAIN-SUFFIX,miaozhen.com,REJECT,extended-matching,pre-matching
+DOMAIN-SUFFIX,domob.cn,REJECT,extended-matching,pre-matching
+DOMAIN-SUFFIX,adwangmai.com,REJECT,extended-matching,pre-matching
+DOMAIN-SUFFIX,sigmob.cn,REJECT,extended-matching,pre-matching
+DOMAIN-SUFFIX,tradplusad.com,REJECT,extended-matching,pre-matching
+DOMAIN-SUFFIX,toponadss.com,REJECT,extended-matching,pre-matching
+DOMAIN-SUFFIX,anythinktech.com,REJECT,extended-matching,pre-matching
+DOMAIN-SUFFIX,applvn.com,REJECT,extended-matching,pre-matching
+DOMAIN-SUFFIX,moloco.com,REJECT,extended-matching,pre-matching
+DOMAIN-SUFFIX,rixengine.com,REJECT,extended-matching,pre-matching
+
+# ===== 知乎去广告（纯规则拦截）=====
+DOMAIN,appcloud2.zhihu.com,REJECT,extended-matching,pre-matching
+DOMAIN,m-cloud.zhihu.com,REJECT,extended-matching,pre-matching
+
+# ===== 开屏广告专用拦截（精确关键词，误拦截率低）=====
+DOMAIN-KEYWORD,splashad,REJECT,extended-matching,pre-matching
+DOMAIN-KEYWORD,launchad,REJECT,extended-matching,pre-matching
+DOMAIN-KEYWORD,openad,REJECT,extended-matching,pre-matching
+DOMAIN-KEYWORD,startupad,REJECT,extended-matching,pre-matching
+DOMAIN-KEYWORD,bootad,REJECT,extended-matching,pre-matching
+DOMAIN-KEYWORD,initad,REJECT,extended-matching,pre-matching
+DOMAIN-KEYWORD,splash_screen,REJECT,extended-matching,pre-matching
+DOMAIN-KEYWORD,app_start,REJECT,extended-matching,pre-matching
+
+# ===== 特定App开屏广告域名 =====
+# 优酷开屏
+DOMAIN,un-acs.youku.com,REJECT,extended-matching,pre-matching
+DOMAIN,ems.youku.com,REJECT,extended-matching,pre-matching
+# 高德地图开屏
+DOMAIN-KEYWORD,alimama/splash,REJECT,extended-matching,pre-matching
+# 网易漫画开屏
+DOMAIN,api-163.biliapi.net,REJECT,extended-matching,pre-matching
+
+# ===== 已移除（会导致断网）=====
+# umeng.com / umtrack.com / umsns.com / umengcloud.com → 友盟统计，App基础功能
+# getui.com / getui.net / igexin.com → 个推推送，App消息推送
+# jpush.cn / jpush.io / jiguang.cn → 极光推送，App消息推送
+# mob.com → ShareSDK分享，App基础功能
+# openinstall.com / openinstall.io → 安装来源统计，App基础功能
+
+[URL Rewrite]
+# ===== 拼多多广告拦截 =====
+^https:\/\/video-dsp\.pddpic\.com\/market-dsp-video\/ - reject
+^https:\/\/t-dsp\.pinduoduo\.com\/dspcb\/i\/mrk_ - reject
+^https:\/\/images\.pinduoduo\.com\/mrk\/ - reject
+^https:\/\/images\.pinduoduo\.com\/marketing_api\/ - reject
+
+# ===== 网易漫画开屏广告 =====
+^https:\/\/api-163\.biliapi\.net\/cover - reject-img
+
+# ===== 已移除（过时导致抖音断网）=====
+# amemv.com → aweme.snssdk.com 重写已移除，抖音API已更新
+
+[Script]
+# ===== 微博去广告（开屏+信息流）by yichahucha =====
+微博开屏 = type=http-response,pattern=^https?://(sdk|wb)app\.uve\.weibo\.com(/interface/sdk/sdkad.php|/wbapplua/wbpullad.lua),script-path=https://raw.githubusercontent.com/yichahucha/surge/master/wb_launch.js,requires-body=true,timeout=10
+微博信息流 = type=http-response,pattern=^https?://m?api\.weibo\.c(n|om)/2/(statuses/(unread|extend|positives/get|(friends|video)(/|_)(mix)?timeline)|stories/(video_stream|home_list)|(groups|fangle)/timeline|profile/statuses|comments/build_comments|photo/recommend_list|service/picfeed|searchall|cardlist|page|!/(photos/pic_recommend_status|live/media_homelist)|video/tiny_stream_video_list|photo/info|remind/unread_count),script-path=https://raw.githubusercontent.com/yichahucha/surge/master/wb_ad.js,requires-body=true,timeout=10
+
+# ===== 抖音去广告（仅修改响应体，不影响连接）by Choler =====
+抖音去广告 = type=http-response,pattern=^https?:\/\/aweme\.snssdk\.com\/aweme\/v1\/(feed|aweme\/post|follow\/feed|nearby\/feed|search\/item|general\/search\/single|hot\/search\/video\/list)\/,script-path=https://Choler.github.io/Surge/Script/douyin.js,requires-body=true,timeout=10
+
+# ===== 小红书去广告（开屏+搜索+信息流）by fmz200 =====
+小红书开屏 = type=http-response,pattern=^https?:\/\/edith\.xiaohongshu\.com\/api\/sns\/v\d+\/system_service\/config\?,script-path=https://github.com/fmz200/wool_scripts/raw/main/Scripts/xiaohongshu/xiaohongshu.js,requires-body=true,timeout=30
+小红书搜索 = type=http-response,pattern=^https?:\/\/edith\.xiaohongshu\.com\/api\/sns\/v\d+\/search\/,script-path=https://github.com/fmz200/wool_scripts/raw/main/Scripts/xiaohongshu/xiaohongshu.js,requires-body=true,timeout=30
+小红书信息流 = type=http-response,pattern=^https?:\/\/edith\.xiaohongshu\.com\/api\/sns\/v\d+\/(feed|note\/feed|homefeed),script-path=https://github.com/fmz200/wool_scripts/raw/main/Scripts/xiaohongshu/xiaohongshu.js,requires-body=true,timeout=30
+
+# ===== 微信公众号去广告 by NobyDa =====
+微信公众号 = type=http-response,pattern=^https?:\/\/mp\.weixin\.qq\.com\/mp\/getappmsgad,script-path=https://raw.githubusercontent.com/NobyDa/Script/master/QuantumultX/File/Wechat.js,requires-body=true,timeout=10
+
+# ===== 百度网页去广告（替换为手机UA）by zZPiglet =====
+百度UA = type=http-request,pattern=^https?:\/\/(?!d\.pcs).*(?<!map)\.baidu\.com,script-path=https://raw.githubusercontent.com/zZPiglet/Task/master/asset/BaiduChangeUA.js
+
+[MITM]
+hostname = %APPEND% *.uve.weibo.com, api.weibo.cn, mapi.weibo.com, aweme.snssdk.com, edith.xiaohongshu.com, *.xiaohongshu.com, mp.weixin.qq.com, video-dsp.pddpic.com, t-dsp.pinduoduo.com, images.pinduoduo.com, api-163.biliapi.net, un-acs.youku.com, ems.youku.com
+enable = true
+skip-server-cert-verify = true
