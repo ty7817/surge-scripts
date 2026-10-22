@@ -1,6 +1,6 @@
 // ============================================
-// DNS 分流矫正器 v3
-// 优化：阿里云DoH国内视角 + Surge配置检测 + CDN智能判断
+// DNS 分流矫正器 v4
+// 优化：主备DoH切换 + 显示优化 + 稳定性提升
 // ============================================
 
 var UA = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36";
@@ -11,7 +11,10 @@ var CDN_RANGES = [
   {start: "43.169.0.0", end: "43.169.255.255", name: "腾讯云CDN"},
   {start: "155.102.0.0", end: "155.102.255.255", name: "阿里云CDN"},
   {start: "101.32.0.0", end: "101.32.255.255", name: "腾讯云"},
-  {start: "120.232.0.0", end: "120.232.255.255", name: "阿里云"}
+  {start: "120.232.0.0", end: "120.232.255.255", name: "阿里云"},
+  {start: "123.150.0.0", end: "123.150.255.255", name: "天津联通"},
+  {start: "203.205.0.0", end: "203.205.255.255", name: "腾讯云"},
+  {start: "113.108.0.0", end: "113.108.255.255", name: "广东电信"}
 ];
 
 function ipToInt(ip) {
@@ -29,35 +32,34 @@ function isCdnIp(ip) {
   return null;
 }
 
-function dohQuery(domain, server) {
+function dohQuery(domain, servers) {
   return new Promise(function(resolve) {
-    var url;
-    if (server === "google") {
-      url = "https://dns.google/resolve?name=" + encodeURIComponent(domain) + "&type=A";
-    } else if (server === "alidns") {
-      url = "https://dns.alidns.com/resolve?name=" + encodeURIComponent(domain) + "&type=A";
-    } else {
-      url = "https://doh.pub/dns-query?name=" + encodeURIComponent(domain) + "&type=A";
-    }
-    $httpClient.get({
-      url: url,
-      timeout: 6,
-      headers: {"User-Agent": UA, "Accept": "application/dns-json"}
-    }, function(error, response, data) {
-      if (error || !data) { resolve(null); return; }
-      try {
-        var json = JSON.parse(data);
-        if (json.Answer && json.Answer.length > 0) {
-          for (var i = 0; i < json.Answer.length; i++) {
-            if (json.Answer[i].type === 1) {
-              resolve(json.Answer[i].data);
-              return;
+    var idx = 0;
+    function tryNext() {
+      if (idx >= servers.length) { resolve(null); return; }
+      var server = servers[idx++];
+      var url = server.replace("{domain}", encodeURIComponent(domain));
+      $httpClient.get({
+        url: url,
+        timeout: 5,
+        headers: {"User-Agent": UA, "Accept": "application/dns-json"}
+      }, function(error, response, data) {
+        if (error || !data) { tryNext(); return; }
+        try {
+          var json = JSON.parse(data);
+          if (json.Answer && json.Answer.length > 0) {
+            for (var i = 0; i < json.Answer.length; i++) {
+              if (json.Answer[i].type === 1) {
+                resolve(json.Answer[i].data);
+                return;
+              }
             }
           }
-        }
-        resolve(null);
-      } catch(e) { resolve(null); }
-    });
+          tryNext();
+        } catch(e) { tryNext(); }
+      });
+    }
+    tryNext();
   });
 }
 
@@ -65,7 +67,7 @@ function ipInfo(ip) {
   return new Promise(function(resolve) {
     if (!ip) { resolve(null); return; }
     $httpClient.get({
-      url: "http://ip-api.com/json/" + ip + "?lang=zh-CN&fields=status,country,regionName,city,isp,org",
+      url: "http://ip-api.com/json/" + ip + "?lang=zh-CN&fields=status,country,regionName,city,isp",
       timeout: 5,
       headers: {"User-Agent": UA}
     }, function(error, response, data) {
@@ -75,7 +77,7 @@ function ipInfo(ip) {
   });
 }
 
-function getSurgeDnsConfig() {
+function getSurgeConfig() {
   return new Promise(function(resolve) {
     $httpClient.get({
       url: API_BASE + "/v1/features",
@@ -107,6 +109,16 @@ function checkNetwork() {
   });
 }
 
+var CN_DOH = [
+  "https://dns.alidns.com/resolve?name={domain}&type=A",
+  "https://doh.pub/dns-query?name={domain}&type=A"
+];
+
+var FOREIGN_DOH = [
+  "https://dns.google/resolve?name={domain}&type=A",
+  "https://cloudflare-dns.com/dns-query?name={domain}&type=A"
+];
+
 var CN_DOMAINS = ["www.baidu.com", "www.qq.com", "www.taobao.com", "www.jd.com"];
 var FOREIGN_DOMAINS = ["www.google.com", "www.youtube.com", "www.netflix.com"];
 
@@ -123,11 +135,11 @@ function finish() {
   var cnOk = 0, cnTotal = 0;
   var foreignOk = 0, foreignTotal = 0;
   
-  if (results._dnsConfig) {
+  if (results._config) {
     lines.push("【Surge DNS】");
-    var cfg = results._dnsConfig;
-    if (cfg.dnsServer) lines.push("DNS服务器: " + cfg.dnsServer.join(", "));
-    if (cfg.encryptedDnsServer) lines.push("加密DNS: " + cfg.encryptedDnsServer.join(", "));
+    var cfg = results._config;
+    if (cfg.dnsServer && cfg.dnsServer.length) lines.push("DNS: " + cfg.dnsServer.join(", "));
+    if (cfg.encryptedDnsServer && cfg.encryptedDnsServer.length) lines.push("加密DNS: 已配置");
     if (cfg.hijackDns) lines.push("DNS劫持: 开启");
     lines.push("");
   }
@@ -170,7 +182,7 @@ function finish() {
     lines.push("【网络出口】");
     var net = results._network;
     lines.push("IP: " + (net.ip || "未知"));
-    lines.push("位置: " + (net.loc || "未知") + " (" + (net.colo || "未知") + ")");
+    if (net.colo) lines.push("机房: " + net.colo);
   }
   
   var totalOk = cnOk + foreignOk;
@@ -192,7 +204,7 @@ setTimeout(finish, 25000);
 for (var i = 0; i < CN_DOMAINS.length; i++) {
   (function(idx) {
     var domain = CN_DOMAINS[idx];
-    dohQuery(domain, "alidns").then(function(ip) {
+    dohQuery(domain, CN_DOH).then(function(ip) {
       if (ip) {
         ipInfo(ip).then(function(info) {
           results[domain] = {ip: ip, info: info};
@@ -211,7 +223,7 @@ for (var i = 0; i < CN_DOMAINS.length; i++) {
 for (var j = 0; j < FOREIGN_DOMAINS.length; j++) {
   (function(idx) {
     var domain = FOREIGN_DOMAINS[idx];
-    dohQuery(domain, "google").then(function(ip) {
+    dohQuery(domain, FOREIGN_DOH).then(function(ip) {
       if (ip) {
         ipInfo(ip).then(function(info) {
           results[domain] = {ip: ip, info: info};
@@ -227,8 +239,8 @@ for (var j = 0; j < FOREIGN_DOMAINS.length; j++) {
   })(j);
 }
 
-getSurgeDnsConfig().then(function(cfg) {
-  results._dnsConfig = cfg;
+getSurgeConfig().then(function(cfg) {
+  results._config = cfg;
   done++;
   if (done === total) finish();
 });
