@@ -1,0 +1,101 @@
+#!name=Telegram访问增强_适配版
+#!desc=已适配你的「电报信息」策略组，精确IP段+ASN+Web WSS，确保MTProto稳定连接
+#!author=综合优化版 v3 适配版
+#!category=网络优化
+#!date=2026-10-23
+
+# ============================================
+# 【v3适配版说明】
+# 已自动识别你的策略组：「电报信息」
+# 导入后直接生效，无需创建新策略组
+#
+# 【修复历史】
+# v2: 移除 force-http-engine/always-real-ip/MITM（导致MTProto断网）
+# v2: 91.108.0.0/16宽段 → 6个精确DC段（/22）
+# v3: 策略组名适配为你的「电报信息」
+#
+# 【与你现有规则的关系】
+# 你配置里已有 blackmatrix7 Telegram规则集（域名+部分IP）
+# 本模组补充：精确DC段、ASN、Web WSS端点
+# 两者叠加不冲突，重复规则Surge自动去重
+# ============================================
+
+[Rule]
+# ===== Telegram域名（25条）=====
+DOMAIN,api.imem.app,电报信息
+DOMAIN,api.swiftgram.app,电报信息
+DOMAIN-SUFFIX,cdn-telegram.org,电报信息
+DOMAIN-SUFFIX,comments.app,电报信息
+DOMAIN-SUFFIX,contest.com,电报信息
+DOMAIN-SUFFIX,graph.org,电报信息
+DOMAIN-SUFFIX,legra.ph,电报信息
+DOMAIN-SUFFIX,mbrx.app,电报信息
+DOMAIN-SUFFIX,quiz.directory,电报信息
+DOMAIN-SUFFIX,stel.com,电报信息
+DOMAIN-SUFFIX,t.me,电报信息
+DOMAIN-SUFFIX,tdesktop.com,电报信息
+DOMAIN-SUFFIX,telega.one,电报信息
+DOMAIN-SUFFIX,telegra.ph,电报信息
+DOMAIN-SUFFIX,telegram-cdn.org,电报信息
+DOMAIN-SUFFIX,telegram.dog,电报信息
+DOMAIN-SUFFIX,telegram.me,电报信息
+DOMAIN-SUFFIX,telegram.org,电报信息
+DOMAIN-SUFFIX,telegram.space,电报信息
+DOMAIN-SUFFIX,telegramdownload.com,电报信息
+DOMAIN-SUFFIX,telesco.pe,电报信息
+DOMAIN-SUFFIX,tg.dev,电报信息
+DOMAIN-SUFFIX,tx.me,电报信息
+DOMAIN-SUFFIX,usercontent.dev,电报信息
+DOMAIN-KEYWORD,nicegram,电报信息
+
+# ===== Telegram MTProto IP段（精确DC段，核心！）=====
+# DC1 - 阿姆斯特丹
+IP-CIDR,91.108.4.0/22,电报信息,no-resolve
+# DC2 - 阿姆斯特丹
+IP-CIDR,91.108.8.0/22,电报信息,no-resolve
+# DC3 - 阿姆斯特丹
+IP-CIDR,91.108.12.0/22,电报信息,no-resolve
+# DC4 - 阿姆斯特丹
+IP-CIDR,91.108.16.0/22,电报信息,no-resolve
+# DC5 - 新加坡
+IP-CIDR,91.108.20.0/22,电报信息,no-resolve
+# DC6/其他
+IP-CIDR,91.108.56.0/22,电报信息,no-resolve
+# 通用段
+IP-CIDR,149.154.160.0/20,电报信息,no-resolve
+IP-CIDR,109.239.140.0/24,电报信息,no-resolve
+IP-CIDR,5.28.192.0/18,电报信息,no-resolve
+IP-CIDR,139.59.210.98/32,电报信息,no-resolve
+IP-CIDR,196.55.216.167/32,电报信息,no-resolve
+
+# ===== Telegram IPv6段 =====
+IP-CIDR6,2001:67c:4e8::/48,电报信息,no-resolve
+IP-CIDR6,2001:b28:f23c::/47,电报信息,no-resolve
+IP-CIDR6,2001:b28:f23f::/48,电报信息,no-resolve
+IP-CIDR6,2a0a:f280::/29,电报信息,no-resolve
+
+# ===== Telegram ASN（数据中心自治系统号）=====
+IP-ASN,211157,电报信息,no-resolve
+IP-ASN,44907,电报信息,no-resolve
+IP-ASN,59930,电报信息,no-resolve
+IP-ASN,62014,电报信息,no-resolve
+IP-ASN,62041,电报信息,no-resolve
+
+# ===== Telegram Web WSS endpoints =====
+DOMAIN,zws1.web.telegram.org,电报信息
+DOMAIN,zws1-1.web.telegram.org,电报信息
+DOMAIN,zws2.web.telegram.org,电报信息
+DOMAIN,zws2-1.web.telegram.org,电报信息
+DOMAIN,zws3.web.telegram.org,电报信息
+DOMAIN,zws3-1.web.telegram.org,电报信息
+DOMAIN,zws4.web.telegram.org,电报信息
+DOMAIN,zws4-1.web.telegram.org,电报信息
+DOMAIN,zws5.web.telegram.org,电报信息
+DOMAIN,zws5-1.web.telegram.org,电报信息
+
+# ===== 已移除（会导致断网）=====
+# force-http-engine-hosts → MTProto不是HTTP，强制HTTP引擎导致连接失败
+# always-real-ip → 可能导致DNS解析异常
+# MITM web.telegram.org → WSS不需要解密，解密导致连接失败
+# PROCESS-NAME → iOS上不生效
+# 91.108.0.0/16 → 范围太宽，可能包含节点IP导致循环
