@@ -1,0 +1,103 @@
+#!name=Telegram访问增强_稳定版
+#!desc=修复断网：移除force-http-engine/always-real-ip/MITM，精确IP段，确保电报MTProto稳定连接
+#!author=综合优化版 v2 稳定版
+#!category=网络优化
+#!date=2026-10-23
+
+# ============================================
+# 【v2稳定版修复说明】
+# 1. 移除 force-http-engine-hosts
+#    → Telegram用MTProto协议不是HTTP，强制HTTP引擎会导致连接失败
+# 2. 移除 always-real-ip
+#    → 可能导致DNS解析异常，影响MTProto直连
+# 3. 移除 MITM
+#    → Telegram Web的WSS不需要解密，解密反而导致连接失败
+# 4. 缩小IP-CIDR范围
+#    → 91.108.0.0/16太宽，改为精确的DC段
+# 5. 移除PROCESS-NAME（iOS上不生效）
+# 6. 保留IP-CIDR+IP-ASN+域名规则（Telegram走代理的核心）
+#
+# 【重要】使用前必须：
+# 在Surge配置中创建名为「📱 Telegram」的策略组（select类型）
+# 把你的节点加进这个策略组
+# ============================================
+
+[Rule]
+# ===== Telegram域名（25条）=====
+DOMAIN,api.imem.app,📱 Telegram
+DOMAIN,api.swiftgram.app,📱 Telegram
+DOMAIN-SUFFIX,cdn-telegram.org,📱 Telegram
+DOMAIN-SUFFIX,comments.app,📱 Telegram
+DOMAIN-SUFFIX,contest.com,📱 Telegram
+DOMAIN-SUFFIX,graph.org,📱 Telegram
+DOMAIN-SUFFIX,legra.ph,📱 Telegram
+DOMAIN-SUFFIX,mbrx.app,📱 Telegram
+DOMAIN-SUFFIX,quiz.directory,📱 Telegram
+DOMAIN-SUFFIX,stel.com,📱 Telegram
+DOMAIN-SUFFIX,t.me,📱 Telegram
+DOMAIN-SUFFIX,tdesktop.com,📱 Telegram
+DOMAIN-SUFFIX,telega.one,📱 Telegram
+DOMAIN-SUFFIX,telegra.ph,📱 Telegram
+DOMAIN-SUFFIX,telegram-cdn.org,📱 Telegram
+DOMAIN-SUFFIX,telegram.dog,📱 Telegram
+DOMAIN-SUFFIX,telegram.me,📱 Telegram
+DOMAIN-SUFFIX,telegram.org,📱 Telegram
+DOMAIN-SUFFIX,telegram.space,📱 Telegram
+DOMAIN-SUFFIX,telegramdownload.com,📱 Telegram
+DOMAIN-SUFFIX,telesco.pe,📱 Telegram
+DOMAIN-SUFFIX,tg.dev,📱 Telegram
+DOMAIN-SUFFIX,tx.me,📱 Telegram
+DOMAIN-SUFFIX,usercontent.dev,📱 Telegram
+DOMAIN-KEYWORD,nicegram,📱 Telegram
+
+# ===== Telegram MTProto IP段（精确DC段，核心！）=====
+# DC1 - 阿姆斯特丹
+IP-CIDR,91.108.4.0/22,📱 Telegram,no-resolve
+# DC2 - 阿姆斯特丹
+IP-CIDR,91.108.8.0/22,📱 Telegram,no-resolve
+# DC3 - 阿姆斯特丹
+IP-CIDR,91.108.12.0/22,📱 Telegram,no-resolve
+# DC4 - 阿姆斯特丹
+IP-CIDR,91.108.16.0/22,📱 Telegram,no-resolve
+# DC5 - 新加坡
+IP-CIDR,91.108.20.0/22,📱 Telegram,no-resolve
+# DC6/其他
+IP-CIDR,91.108.56.0/22,📱 Telegram,no-resolve
+# 通用段
+IP-CIDR,149.154.160.0/20,📱 Telegram,no-resolve
+IP-CIDR,109.239.140.0/24,📱 Telegram,no-resolve
+IP-CIDR,5.28.192.0/18,📱 Telegram,no-resolve
+IP-CIDR,139.59.210.98/32,📱 Telegram,no-resolve
+IP-CIDR,196.55.216.167/32,📱 Telegram,no-resolve
+
+# ===== Telegram IPv6段 =====
+IP-CIDR6,2001:67c:4e8::/48,📱 Telegram,no-resolve
+IP-CIDR6,2001:b28:f23c::/47,📱 Telegram,no-resolve
+IP-CIDR6,2001:b28:f23f::/48,📱 Telegram,no-resolve
+IP-CIDR6,2a0a:f280::/29,📱 Telegram,no-resolve
+
+# ===== Telegram ASN（数据中心自治系统号）=====
+IP-ASN,211157,📱 Telegram,no-resolve
+IP-ASN,44907,📱 Telegram,no-resolve
+IP-ASN,59930,📱 Telegram,no-resolve
+IP-ASN,62014,📱 Telegram,no-resolve
+IP-ASN,62041,📱 Telegram,no-resolve
+
+# ===== Telegram Web WSS endpoints =====
+DOMAIN,zws1.web.telegram.org,📱 Telegram
+DOMAIN,zws1-1.web.telegram.org,📱 Telegram
+DOMAIN,zws2.web.telegram.org,📱 Telegram
+DOMAIN,zws2-1.web.telegram.org,📱 Telegram
+DOMAIN,zws3.web.telegram.org,📱 Telegram
+DOMAIN,zws3-1.web.telegram.org,📱 Telegram
+DOMAIN,zws4.web.telegram.org,📱 Telegram
+DOMAIN,zws4-1.web.telegram.org,📱 Telegram
+DOMAIN,zws5.web.telegram.org,📱 Telegram
+DOMAIN,zws5-1.web.telegram.org,📱 Telegram
+
+# ===== 已移除（会导致断网）=====
+# force-http-engine-hosts → MTProto不是HTTP，强制HTTP引擎导致连接失败
+# always-real-ip → 可能导致DNS解析异常
+# MITM web.telegram.org → WSS不需要解密，解密导致连接失败
+# PROCESS-NAME → iOS上不生效
+# 91.108.0.0/16 → 范围太宽，可能包含节点IP导致循环
