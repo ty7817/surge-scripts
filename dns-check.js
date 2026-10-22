@@ -1,18 +1,37 @@
 // ============================================
-// DNS 分流矫正器
-// 检测国内/国外域名解析是否正确，DNS泄漏检测
+// DNS 分流矫正器 v2
+// 用 DoH 查询 DNS 解析结果，检测国内/国外域名分流
 // ============================================
 
 var UA = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36";
 
-function dnsResolve(domain) {
+function dohQuery(domain, server) {
   return new Promise(function(resolve) {
-    try {
-      $httpClient.dns(domain, function(error, data) {
-        if (error || !data || !data.address) { resolve(null); return; }
-        resolve(data.address);
-      });
-    } catch(e) { resolve(null); }
+    var url;
+    if (server === "google") {
+      url = "https://dns.google/resolve?name=" + encodeURIComponent(domain) + "&type=A";
+    } else {
+      url = "https://doh.pub/dns-query?name=" + encodeURIComponent(domain) + "&type=A";
+    }
+    $httpClient.get({
+      url: url,
+      timeout: 6,
+      headers: {"User-Agent": UA, "Accept": "application/dns-json"}
+    }, function(error, response, data) {
+      if (error || !data) { resolve(null); return; }
+      try {
+        var json = JSON.parse(data);
+        if (json.Answer && json.Answer.length > 0) {
+          for (var i = 0; i < json.Answer.length; i++) {
+            if (json.Answer[i].type === 1) {
+              resolve(json.Answer[i].data);
+              return;
+            }
+          }
+        }
+        resolve(null);
+      } catch(e) { resolve(null); }
+    });
   });
 }
 
@@ -20,7 +39,7 @@ function ipInfo(ip) {
   return new Promise(function(resolve) {
     if (!ip) { resolve(null); return; }
     $httpClient.get({
-      url: "http://ip-api.com/json/" + ip + "?lang=zh-CN&fields=status,country,regionName,city,isp,query",
+      url: "http://ip-api.com/json/" + ip + "?lang=zh-CN&fields=status,country,regionName,city,isp",
       timeout: 5,
       headers: {"User-Agent": UA}
     }, function(error, response, data) {
@@ -30,7 +49,7 @@ function ipInfo(ip) {
   });
 }
 
-function checkDnsLeak() {
+function checkNetwork() {
   return new Promise(function(resolve) {
     $httpClient.get({
       url: "https://www.cloudflare.com/cdn-cgi/trace",
@@ -96,12 +115,12 @@ function finish() {
     }
   }
   
-  if (results._leak) {
+  if (results._network) {
     lines.push("");
     lines.push("【网络出口】");
-    var leak = results._leak;
-    lines.push("IP: " + (leak.ip || "未知"));
-    lines.push("位置: " + (leak.loc || "未知") + " (" + (leak.colo || "未知") + ")");
+    var net = results._network;
+    lines.push("IP: " + (net.ip || "未知"));
+    lines.push("位置: " + (net.loc || "未知") + " (" + (net.colo || "未知") + ")");
   }
   
   var totalOk = cnOk + foreignOk;
@@ -118,12 +137,12 @@ function finish() {
   });
 }
 
-setTimeout(finish, 15000);
+setTimeout(finish, 20000);
 
 for (var i = 0; i < CN_DOMAINS.length; i++) {
   (function(idx) {
     var domain = CN_DOMAINS[idx];
-    dnsResolve(domain).then(function(ip) {
+    dohQuery(domain, "tencent").then(function(ip) {
       if (ip) {
         ipInfo(ip).then(function(info) {
           results[domain] = {ip: ip, info: info};
@@ -142,7 +161,7 @@ for (var i = 0; i < CN_DOMAINS.length; i++) {
 for (var j = 0; j < FOREIGN_DOMAINS.length; j++) {
   (function(idx) {
     var domain = FOREIGN_DOMAINS[idx];
-    dnsResolve(domain).then(function(ip) {
+    dohQuery(domain, "google").then(function(ip) {
       if (ip) {
         ipInfo(ip).then(function(info) {
           results[domain] = {ip: ip, info: info};
@@ -158,8 +177,8 @@ for (var j = 0; j < FOREIGN_DOMAINS.length; j++) {
   })(j);
 }
 
-checkDnsLeak().then(function(leak) {
-  results._leak = leak;
+checkNetwork().then(function(net) {
+  results._network = net;
   done++;
   if (done === total) finish();
 });
