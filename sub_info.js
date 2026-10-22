@@ -81,25 +81,31 @@ function detectName(sub, response, body) {
 
 function discoverSubs(callback) {
   var password = "ty.20040120";
-  $httpClient.get({
-    url: "http://127.0.0.1:6171/v1/configuration",
-    headers: {"Authorization": "Bearer " + password}
-  }, function(error, response, data) {
-    if (!error && response && response.status === 200 && data) {
-      var subs = [];
-      var regex = /policy-path=([^\s,]+)/g;
-      var match, urls = {};
-      while ((match = regex.exec(data)) !== null) {
-        var url = match[1].trim();
-        if (url && url.indexOf("http") === 0 && !urls[url]) {
-          urls[url] = true;
-          subs.push({name: "", url: url});
+  var protocols = ["http", "https"];
+  function tryProto(idx) {
+    if (idx >= protocols.length) { callback(DEFAULT_SUBS); return; }
+    var proto = protocols[idx];
+    $httpClient.get({
+      url: proto + "://127.0.0.1:6171/v1/configuration",
+      headers: {"Authorization": "Bearer " + password}
+    }, function(error, response, data) {
+      if (!error && response && response.status === 200 && data) {
+        var subs = [];
+        var regex = /policy-path=([^\s,]+)/g;
+        var match, urls = {};
+        while ((match = regex.exec(data)) !== null) {
+          var url = match[1].trim();
+          if (url && url.indexOf("http") === 0 && !urls[url]) {
+            urls[url] = true;
+            subs.push({name: "", url: url});
+          }
         }
+        if (subs.length > 0) { callback(subs); return; }
       }
-      if (subs.length > 0) { callback(subs); return; }
-    }
-    callback(DEFAULT_SUBS);
-  });
+      tryProto(idx + 1);
+    });
+  }
+  tryProto(0);
 }
 
 var results = [], doneCount = 0, finished = false;
