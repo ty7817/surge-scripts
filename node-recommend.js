@@ -1,6 +1,6 @@
 // ============================================
-// 节点测速推荐面板 v4.0（修正API参数版）
-// 修正：httpAPI参数顺序为 (path, method, body)
+// 节点测速推荐面板 v5.0
+// 功能：测试每个地区组所有节点延迟，推荐最优节点
 // ============================================
 
 var SERVER_GROUPS = [
@@ -13,13 +13,7 @@ var SERVER_GROUPS = [
   { name: "⚙️ 我的节点", flag: "📱", short: "我的" }
 ];
 
-var APP_GROUPS = [
-  "主节点", "谷歌服务", "油管视频", "奈飞视频", "电报信息", "推特X",
-  "GitHub", "AI服务", "TikTok短视频", "Emby影院", "微软服务",
-  "游戏服务", "动漫漫画", "GameBus视频网站", "哔哩哔哩"
-];
-
-// ---------- HTTP API（正确参数顺序：path, method, body）----------
+// ---------- HTTP API ----------
 function httpAPI(path, method, body) {
   return new Promise((resolve) => {
     $httpAPI(method || "GET", path, body || {}, (result) => {
@@ -37,36 +31,27 @@ function render(data) {
   finished = true;
   data = data || {};
   var groupBest = data.groupBest || {};
-  var appTrace = data.appTrace || {};
+  var debugInfo = data.debug || "";
 
   var lines = [];
 
-  lines.push("【地区组推荐】");
+  lines.push("【推荐最优节点】");
+  var okCount = 0;
   SERVER_GROUPS.forEach(function (g) {
     var b = groupBest[g.name];
-    if (b) lines.push(g.flag + " " + g.short + " ➟ " + b.node + " (" + b.latency + "ms)");
-    else lines.push(g.flag + " " + g.short + " ➟ 无可用节点");
-  });
-
-  lines.push("");
-  lines.push("【应用组当前链路】");
-  APP_GROUPS.forEach(function (g) {
-    var t = appTrace[g];
-    if (!t) {
-      lines.push("• " + g + " ➟ 无法获取");
-    } else if (t.final === "DIRECT") {
-      lines.push("• " + g + " ➟ 直连");
+    if (b) {
+      okCount++;
+      lines.push(g.flag + " " + g.short + " ➟ " + b.node + " (" + b.latency + "ms)");
     } else {
-      lines.push("• " + g + " ➟ " + t.final);
+      lines.push(g.flag + " " + g.short + " ➟ 无可用节点");
     }
   });
 
   var elapsed = ((Date.now() - startTs) / 1000).toFixed(1);
-  var hasResult = Object.keys(appTrace).length > 0;
-  var color = hasResult ? "#34C759" : "#FF9500";
+  var color = okCount >= 5 ? "#34C759" : (okCount >= 2 ? "#FF9500" : "#FF3B30");
 
   $done({
-    title: "⚡ 节点推荐",
+    title: "⚡ 节点推荐 " + okCount + "/" + SERVER_GROUPS.length,
     content: lines.join("\n") + "\n\n测速耗时 " + elapsed + "s",
     icon: "speedometer",
     "icon-color": color
@@ -77,48 +62,54 @@ function render(data) {
 setTimeout(function () { render(null); }, 60000);
 
 (async function () {
-  // 1. 获取所有策略组
-  var allGroups = await httpAPI("/v1/policy_groups");
-  if (!allGroups) return render(null);
-
-  // 2. 触发所有地区组测速
+  // 1. 触发所有地区组测速
   for (var i = 0; i < SERVER_GROUPS.length; i++) {
     await httpAPI("/v1/policy_groups/test", "POST", { group_name: SERVER_GROUPS[i].name });
   }
 
-  // 3. 等待测速完成
-  await new Promise(function (r) { setTimeout(r, 10000); });
+  // 2. 等待测速完成（多等一会，确保测完）
+  await new Promise(function (r) { setTimeout(r, 15000); });
 
-  // 4. 获取测速结果
+  // 3. 获取测速结果
   var testResults = await httpAPI("/v1/policy_groups/test_results");
 
-  // 5. 解析每个组的最快节点
   var groupBest = {};
+
   if (testResults && typeof testResults === "object") {
     SERVER_GROUPS.forEach(function (g) {
-      var groupResult = testResults[g.name];
-      if (groupResult && Array.isArray(groupResult)) {
-        var best = null;
-        groupResult.forEach(function (item) {
-          if (item.alive && (!best || item.delay < best.delay)) {
-            best = { node: item.name, latency: item.delay };
+      var groupData = testResults[g.name];
+      if (!groupData) return;
+
+      // 兼容多种返回格式
+      var best = null;
+
+      // 格式1: { "节点名": 延迟毫秒数 }
+      if (typeof groupData === "object" && !Array.isArray(groupData)) {
+        Object.keys(groupData).forEach(function (nodeName) {
+          var delay = groupData[nodeName];
+          if (typeof delay === "number" && delay > 0) {
+            if (!best || delay < best.latency) {
+              best = { node: nodeName, latency: delay };
+            }
           }
         });
-        groupBest[g.name] = best;
       }
+      // 格式2: [{ name: "xxx", delay: 45 }]
+      else if (Array.isArray(groupData)) {
+        groupData.forEach(function (item) {
+          if (item && item.delay > 0) {
+            if (!best || item.delay < best.latency) {
+              best = { node: item.name, latency: item.delay };
+            }
+          }
+        });
+      }
+
+      groupBest[g.name] = best;
     });
   }
 
-  // 6. 获取应用组当前链路
-  var appTrace = {};
-  for (var j = 0; j < APP_GROUPS.length; j++) {
-    var sel = await httpAPI("/v1/policy_groups/select?group_name=" + encodeURIComponent(APP_GROUPS[j]));
-    if (sel && sel.policy) {
-      appTrace[APP_GROUPS[j]] = { final: sel.policy };
-    }
-  }
-
-  render({ groupBest: groupBest, appTrace: appTrace });
+  render({ groupBest: groupBest });
 })()["catch"](function (e) {
   render({ error: String(e) });
 });
