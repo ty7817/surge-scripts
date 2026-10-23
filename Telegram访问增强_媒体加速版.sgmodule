@@ -1,0 +1,123 @@
+#!name=Telegram访问增强_媒体加速版
+#!desc=已适配「电报信息」策略组，CDN走HTTP引擎+TCP Fast Open，图片视频加载更快
+#!author=综合优化版 v4 媒体加速版
+#!category=网络优化
+#!date=2026-10-23
+
+# ============================================
+# 【v4媒体加速版说明】
+# 已自动识别你的策略组：「电报信息」
+# 导入后直接生效，无需创建新策略组
+#
+# 【媒体加速优化】
+# 1. CDN域名走HTTP引擎（force-http-engine）
+#    → 大文件/图片/视频走HTTP引擎比MTProto传输更快
+#    → 只对CDN域名生效，不影响MTProto消息连接
+# 2. TCP Fast Open
+#    → 减少TCP握手延迟，连接建立更快
+# 3. CDN域名always-real-ip
+#    → 确保CDN解析到真实IP，避免DNS污染导致慢
+# 4. 完整CDN域名列表
+#    → cdn1-5.telegram.org / cdn.telegram.org 等
+#
+# 【修复历史】
+# v2: 移除全局force-http-engine/always-real-ip/MITM（导致MTProto断网）
+# v2: 91.108.0.0/16宽段 → 6个精确DC段（/22）
+# v3: 策略组名适配为你的「电报信息」
+# v4: CDN域名单独走HTTP引擎+TCP Fast Open，媒体加载加速
+# ============================================
+
+[General]
+# CDN域名走HTTP引擎（只对CDN，不影响MTProto）
+force-http-engine-hosts = %APPEND% cdn.telegram.org, cdn1.telegram.org, cdn2.telegram.org, cdn3.telegram.org, cdn4.telegram.org, cdn5.telegram.org, telegram-cdn.org, cdn-telegram.org
+# CDN域名确保真实IP解析
+always-real-ip = %APPEND% cdn.telegram.org, cdn1.telegram.org, cdn2.telegram.org, cdn3.telegram.org, cdn4.telegram.org, cdn5.telegram.org, telegram-cdn.org, cdn-telegram.org
+# TCP Fast Open加速连接
+tcp-fast-open = true
+
+[Rule]
+# ===== Telegram域名（31条）=====
+DOMAIN,api.imem.app,电报信息
+DOMAIN,api.swiftgram.app,电报信息
+DOMAIN-SUFFIX,cdn-telegram.org,电报信息
+DOMAIN-SUFFIX,cdn.telegram.org,电报信息
+DOMAIN-SUFFIX,cdn1.telegram.org,电报信息
+DOMAIN-SUFFIX,cdn2.telegram.org,电报信息
+DOMAIN-SUFFIX,cdn3.telegram.org,电报信息
+DOMAIN-SUFFIX,cdn4.telegram.org,电报信息
+DOMAIN-SUFFIX,cdn5.telegram.org,电报信息
+DOMAIN-SUFFIX,comments.app,电报信息
+DOMAIN-SUFFIX,contest.com,电报信息
+DOMAIN-SUFFIX,graph.org,电报信息
+DOMAIN-SUFFIX,legra.ph,电报信息
+DOMAIN-SUFFIX,mbrx.app,电报信息
+DOMAIN-SUFFIX,quiz.directory,电报信息
+DOMAIN-SUFFIX,stel.com,电报信息
+DOMAIN-SUFFIX,t.me,电报信息
+DOMAIN-SUFFIX,tdesktop.com,电报信息
+DOMAIN-SUFFIX,telega.one,电报信息
+DOMAIN-SUFFIX,telegra.ph,电报信息
+DOMAIN-SUFFIX,telegram-cdn.org,电报信息
+DOMAIN-SUFFIX,telegram.dog,电报信息
+DOMAIN-SUFFIX,telegram.me,电报信息
+DOMAIN-SUFFIX,telegram.org,电报信息
+DOMAIN-SUFFIX,telegram.space,电报信息
+DOMAIN-SUFFIX,telegramdownload.com,电报信息
+DOMAIN-SUFFIX,telesco.pe,电报信息
+DOMAIN-SUFFIX,tg.dev,电报信息
+DOMAIN-SUFFIX,tx.me,电报信息
+DOMAIN-SUFFIX,usercontent.dev,电报信息
+DOMAIN-KEYWORD,nicegram,电报信息
+
+# ===== Telegram MTProto IP段（精确DC段，核心！）=====
+# DC1 - 阿姆斯特丹
+IP-CIDR,91.108.4.0/22,电报信息,no-resolve
+# DC2 - 阿姆斯特丹
+IP-CIDR,91.108.8.0/22,电报信息,no-resolve
+# DC3 - 阿姆斯特丹
+IP-CIDR,91.108.12.0/22,电报信息,no-resolve
+# DC4 - 阿姆斯特丹
+IP-CIDR,91.108.16.0/22,电报信息,no-resolve
+# DC5 - 新加坡
+IP-CIDR,91.108.20.0/22,电报信息,no-resolve
+# DC6/其他
+IP-CIDR,91.108.56.0/22,电报信息,no-resolve
+# 通用段
+IP-CIDR,149.154.160.0/20,电报信息,no-resolve
+IP-CIDR,109.239.140.0/24,电报信息,no-resolve
+IP-CIDR,5.28.192.0/18,电报信息,no-resolve
+IP-CIDR,139.59.210.98/32,电报信息,no-resolve
+IP-CIDR,196.55.216.167/32,电报信息,no-resolve
+
+# ===== Telegram IPv6段 =====
+IP-CIDR6,2001:67c:4e8::/48,电报信息,no-resolve
+IP-CIDR6,2001:b28:f23c::/47,电报信息,no-resolve
+IP-CIDR6,2001:b28:f23f::/48,电报信息,no-resolve
+IP-CIDR6,2a0a:f280::/29,电报信息,no-resolve
+
+# ===== Telegram ASN（数据中心自治系统号）=====
+IP-ASN,211157,电报信息,no-resolve
+IP-ASN,44907,电报信息,no-resolve
+IP-ASN,59930,电报信息,no-resolve
+IP-ASN,62014,电报信息,no-resolve
+IP-ASN,62041,电报信息,no-resolve
+
+# ===== Telegram Web WSS endpoints =====
+DOMAIN,zws1.web.telegram.org,电报信息
+DOMAIN,zws1-1.web.telegram.org,电报信息
+DOMAIN,zws2.web.telegram.org,电报信息
+DOMAIN,zws2-1.web.telegram.org,电报信息
+DOMAIN,zws3.web.telegram.org,电报信息
+DOMAIN,zws3-1.web.telegram.org,电报信息
+DOMAIN,zws4.web.telegram.org,电报信息
+DOMAIN,zws4-1.web.telegram.org,电报信息
+DOMAIN,zws5.web.telegram.org,电报信息
+DOMAIN,zws5-1.web.telegram.org,电报信息
+
+# ===== 配置说明 =====
+# force-http-engine-hosts → 只对CDN域名生效，加速大文件传输，不影响MTProto
+# always-real-ip → 只对CDN域名生效，确保CDN解析到真实IP
+# tcp-fast-open → 减少TCP握手延迟
+# MITM → 不使用，WSS不需要解密
+# PROCESS-NAME → 不使用，iOS上不生效
+# 91.108.0.0/16 → 已拆为6个精确DC段（/22）
