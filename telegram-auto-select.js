@@ -1,10 +1,13 @@
-// Telegram 自动测速选点脚本
-// 每10分钟自动测试「电报信息」策略组中所有节点延迟，切换到最快节点
+// Telegram 自动测速选点脚本（流量触发版）
+// 当有 Telegram 流量时触发，自动测试「电报信息」策略组所有节点延迟，切换到最快节点
+// 加5分钟节流，避免频繁执行
 // 依赖 Surge HTTP API (http-api 需开启)
 
 const GROUP_NAME = "电报信息";
 const API_BASE = "http://127.0.0.1:6171";
 const API_PASS = "ty.20040120";
+const LAST_RUN_KEY = "tg_auto_select_last_run";
+const MIN_INTERVAL = 5 * 60 * 1000; // 5分钟节流
 
 function auth() {
   return { "Authorization": "Basic " + $text.base64(":" + API_PASS) };
@@ -53,6 +56,16 @@ function httpPut(path, body) {
 
 (async () => {
   try {
+    // 节流检查：5分钟内不重复执行
+    const lastRun = $persistentStore.read(LAST_RUN_KEY);
+    const now = Date.now();
+    if (lastRun && now - parseInt(lastRun) < MIN_INTERVAL) {
+      console.log("[TG自动选点] 距上次执行不足5分钟，跳过");
+      $done({});
+      return;
+    }
+    $persistentStore.write(now.toString(), LAST_RUN_KEY);
+
     // 1. 触发策略组测速
     await httpPost("/v1/test", {
       policy_groups: [GROUP_NAME],
@@ -69,6 +82,7 @@ function httpPut(path, body) {
 
     if (!Array.isArray(candidates) || candidates.length === 0) {
       console.log("[TG自动选点] 未获取到候选节点");
+      $done({});
       return;
     }
 
@@ -76,6 +90,7 @@ function httpPut(path, body) {
     const valid = candidates.filter(c => c.delay && c.delay > 0);
     if (valid.length === 0) {
       console.log("[TG自动选点] 所有节点均不可用");
+      $done({});
       return;
     }
 
@@ -95,8 +110,8 @@ function httpPut(path, body) {
         policy_group: GROUP_NAME,
         policy: best.name
       });
-      console.log(`[TG自动选点] ${current}(${groupInfo.delay}ms) → ${best.name}(${best.delay}ms)`);
-      $notification.post("Telegram 自动选点", `已切换到最快节点`, `${best.name} (${best.delay}ms)`);
+      console.log(`[TG自动选点] ${current} → ${best.name}(${best.delay}ms)`);
+      $notification.post("Telegram 自动选点", "已切换到最快节点", `${best.name} (${best.delay}ms)`);
     } else {
       console.log(`[TG自动选点] 当前已是最快: ${best.name} (${best.delay}ms)`);
     }
@@ -104,4 +119,5 @@ function httpPut(path, body) {
   } catch (e) {
     console.error("[TG自动选点] 失败:", e);
   }
+  $done({});
 })();
