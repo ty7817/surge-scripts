@@ -1,30 +1,15 @@
 #!name=流量统计面板
-#!desc=实时显示上传/下载流量、速度、峰值，点击切换网络界面
-#!author=优化版 v2.1
-#!category=面板
-#!date=2026-10-23
+#!desc=实时显示上传/下载流量和速度
+#!author=稳定版 v3.0
+#!system=ios
 
 # ============================================
-# 【流量统计面板】
-# 功能：实时显示上传/下载流量、当前速度、峰值速度
-#       点击面板切换网络界面（WiFi/蜂窝）
-#
-# 【显示内容】
-# 1. 上传流量 + 当前上传速度
-# 2. 下载流量 + 当前下载速度
-# 3. 峰值上传/下载速度
-#
-# 【特点】
-# 1. 每秒自动刷新
-# 2. 中文显示
-# 3. 点击切换网络界面
-# 4. 自动过滤回环网络
+# 【流量统计面板 稳定版】
+# 极简设计，不会卡住Surge
 # ============================================
 
 [Panel]
-# 流量统计面板，每秒刷新
-流量统计 = script-name=流量统计面板, update-interval=1
+流量统计 = script-name=流量统计面板, update-interval=5
 
 [Script]
-# 流量统计面板脚本
-流量统计面板 = type=generic, timeout=10, script-path=https://cdn.jsdelivr.net/gh/ty7817/surge-scripts@56d5a2f241fd5fe44e0a757967cc81428f6ff0d0/traffic-panel.js, argument=icon=gauge&color=#34c759
+流量统计面板 = type=generic, timeout=5, script-path=https://cdn.jsdelivr.net/gh/ty7817/surge-scripts@433e41b107a722b79207ac1ced2233e66b38e2f7/traffic-panel.js
