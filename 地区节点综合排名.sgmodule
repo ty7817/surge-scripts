@@ -1,6 +1,6 @@
 #!name=地区节点综合排名
 #!desc=检测每个地区节点的流媒体通过率和延迟，综合评分排名后自动连接最优节点
-#!author=定制版 v1.2
+#!author=定制版 v1.3
 #!category=网络优化
 #!date=2026-10-23
 
@@ -25,18 +25,21 @@
 # 3. 如果流媒体通过 < 2个，最多额外测试2个备选节点
 # 4. 自动切换到评分最高的节点
 #
-# 【v1.2修正】
-# 1. 修正获取节点列表的API路径
-# 2. 增加切换节点后的等待时间到1.5秒
-# 3. 改进Netflix测试URL为具体影片页
+# 【v1.3更新】
+# 1. 新增Wi-Fi/流量切换时自动测试（network-changed事件）
+# 2. 定时刷新：0点/8点/12点/20点
 #
 # 【触发方式】
-# 每天0点、8点、12点、20点自动执行（非视频播放时段）
+# 1. 每天0点、8点、12点、20点自动执行（定时）
+# 2. Wi-Fi/流量切换时自动执行（网络变化事件）
 #
 # 【前置要求】
 # Surge HTTP API必须开启
 # ============================================
 
 [Script]
-# 每天0点、8点、12点、20点自动执行
+# 每天0点、8点、12点、20点自动执行（定时）
 region-rank = type=cron,cronexp=0 0,8,12,20 * * *,script-path=https://cdn.jsdelivr.net/gh/ty7817/surge-scripts@e73a6960609d44ded72ffa64caec43315c7b512b/region-streaming-rank.js,timeout=300,wake-system=1,script-update-interval=86400
+
+# Wi-Fi/流量切换时自动执行（网络变化事件）
+region-rank-network = type=event,event-name=network-changed,script-path=https://cdn.jsdelivr.net/gh/ty7817/surge-scripts@e73a6960609d44ded72ffa64caec43315c7b512b/region-streaming-rank.js,timeout=300,wake-system=1,script-update-interval=86400
