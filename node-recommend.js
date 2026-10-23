@@ -1,6 +1,6 @@
 // ============================================
-// 节点测速推荐面板 v5.0
-// 功能：测试每个地区组所有节点延迟，推荐最优节点
+// 节点测速推荐面板 v6.0（正确API版）
+// 正确API：/v1/policies/benchmark_results（按lineHash索引）
 // ============================================
 
 var SERVER_GROUPS = [
@@ -31,11 +31,10 @@ function render(data) {
   finished = true;
   data = data || {};
   var groupBest = data.groupBest || {};
-  var debugInfo = data.debug || "";
 
   var lines = [];
-
   lines.push("【推荐最优节点】");
+
   var okCount = 0;
   SERVER_GROUPS.forEach(function (g) {
     var b = groupBest[g.name];
@@ -59,51 +58,44 @@ function render(data) {
 }
 
 // 全局兜底
-setTimeout(function () { render(null); }, 60000);
+setTimeout(function () { render(null); }, 45000);
 
 (async function () {
-  // 1. 触发所有地区组测速
+  // 1. 获取所有策略组（拿到每个节点的lineHash）
+  var policyGroups = await httpAPI("/v1/policy_groups");
+  if (!policyGroups) return render(null);
+
+  // 2. 触发所有地区组测速
   for (var i = 0; i < SERVER_GROUPS.length; i++) {
     await httpAPI("/v1/policy_groups/test", "POST", { group_name: SERVER_GROUPS[i].name });
   }
 
-  // 2. 等待测速完成（多等一会，确保测完）
+  // 3. 等待测速完成
   await new Promise(function (r) { setTimeout(r, 15000); });
 
-  // 3. 获取测速结果
-  var testResults = await httpAPI("/v1/policy_groups/test_results");
+  // 4. 获取benchmark结果（正确API！）
+  var benchmark = await httpAPI("/v1/policies/benchmark_results");
 
   var groupBest = {};
 
-  if (testResults && typeof testResults === "object") {
+  if (benchmark && typeof benchmark === "object") {
     SERVER_GROUPS.forEach(function (g) {
-      var groupData = testResults[g.name];
-      if (!groupData) return;
+      var groupNodes = policyGroups[g.name];
+      if (!groupNodes || !Array.isArray(groupNodes)) return;
 
-      // 兼容多种返回格式
       var best = null;
+      groupNodes.forEach(function (node) {
+        if (!node.lineHash) return;
+        var result = benchmark[node.lineHash];
+        if (!result) return;
 
-      // 格式1: { "节点名": 延迟毫秒数 }
-      if (typeof groupData === "object" && !Array.isArray(groupData)) {
-        Object.keys(groupData).forEach(function (nodeName) {
-          var delay = groupData[nodeName];
-          if (typeof delay === "number" && delay > 0) {
-            if (!best || delay < best.latency) {
-              best = { node: nodeName, latency: delay };
-            }
+        var delay = result.lastTestScoreInMS;
+        if (delay && delay > 0 && delay < 6000) {
+          if (!best || delay < best.latency) {
+            best = { node: node.name, latency: delay };
           }
-        });
-      }
-      // 格式2: [{ name: "xxx", delay: 45 }]
-      else if (Array.isArray(groupData)) {
-        groupData.forEach(function (item) {
-          if (item && item.delay > 0) {
-            if (!best || item.delay < best.latency) {
-              best = { node: item.name, latency: item.delay };
-            }
-          }
-        });
-      }
+        }
+      });
 
       groupBest[g.name] = best;
     });
