@@ -1,0 +1,151 @@
+#!name=Twitter(X)画质增强_优化版
+#!desc=图片自动最高画质+视频播放优化+连接加速，适配推特X策略组
+#!author=综合优化版 v1.0
+#!category=网络优化
+#!date=2026-10-23
+
+# ============================================
+# 【Twitter(X)画质增强优化版】
+# 已自动识别你的策略组：「推特X」
+# 导入后直接生效，无需创建新策略组
+#
+# 【图片优化】
+# 1. 推文图片 → 自动最高画质(name=orig)
+# 2. 用户头像 → 自动原图(去掉_normal)
+# 3. 卡片图片 → 自动最高画质
+# 4. 预览速度优化 → always-raw-tcp减少连接开销
+#
+# 【视频优化】
+# 1. always-raw-tcp → 视频流走原始TCP，减少HTTP引擎开销
+# 2. tcp-fast-open → 减少握手延迟，视频起播更快
+# 3. 完整视频域名规则 → 确保视频CDN走代理
+#
+# 【注意】
+# Twitter视频使用HLS(m3u8)动态码率，客户端会自动选最佳画质
+# 本模组通过优化连接速度和稳定性来提升视频播放体验
+# ============================================
+
+[General]
+# Twitter IP走原始TCP（图片视频加载更快，减少HTTP引擎开销）
+always-raw-tcp-hosts = %APPEND% pbs.twimg.com, video.twimg.com, ton.twimg.com, cdn.syndication.twimg.com, abs.twimg.com, pbs-1.twimg.com
+# TCP Fast Open加速连接建立（视频起播更快）
+tcp-fast-open = true
+
+[URL Rewrite]
+# ===== 推文图片：自动最高画质 name=orig =====
+# 匹配 pbs.twimg.com/media/XXX?format=jpg&name=small/medium/large/thumb
+# 改写为 name=orig（原图最高画质）
+^https?://pbs\.twimg\.com/media/([^?]+)\?(.*)name=(small|medium|large|thumb|360x360|900x900)(.*)$ https://pbs.twimg.com/media/$1?$2name=orig$4 header
+# 匹配没有name参数的，追加name=orig
+^https?://pbs\.twimg\.com/media/([^?]+)\?format=(jpg|png|webp)$ https://pbs.twimg.com/media/$1?format=$2&name=orig header
+
+# ===== 卡片图片：自动最高画质 =====
+^https?://pbs\.twimg\.com/card_img/([^?]+)\?(.*)name=(small|medium|large|thumb)(.*)$ https://pbs.twimg.com/card_img/$1?$2name=orig$4 header
+
+# ===== 用户头像：自动原图（去掉_normal/_bigger/_mini）=====
+# 匹配 profile_images/XXX/YYY_normal.jpg → profile_images/XXX/YYY.jpg（原图）
+^https?://pbs\.twimg\.com/profile_images/([^/]+)/([^_]+)_(normal|bigger|mini|reasonably_small)\.(jpg|png|webp)$ https://pbs.twimg.com/profile_images/$1/$2.$4 header
+# 带查询参数的头像
+^https?://pbs\.twimg\.com/profile_images/([^/]+)/([^_]+)_(normal|bigger|mini|reasonably_small)\.(jpg|png|webp)\?(.*)$ https://pbs.twimg.com/profile_images/$1/$2.$4?$5 header
+
+# ===== 横幅图片：自动原图 =====
+^https?://pbs\.twimg\.com/profile_banners/([^/]+)/([^?]+)\?(.*)name=(small|medium|large|thumb)(.*)$ https://pbs.twimg.com/profile_banners/$1/$2?$3name=orig$5 header
+
+# ===== 表情图片：最高画质 =====
+^https?://pbs\.twimg\.com/emoji/([^?]+)\?(.*)name=(small|medium|large)(.*)$ https://pbs.twimg.com/emoji/$1?$2name=orig$4 header
+
+[Rule]
+# ===== Twitter/X主域名 =====
+DOMAIN-SUFFIX,twitter.com,推特X
+DOMAIN-SUFFIX,x.com,推特X
+DOMAIN-SUFFIX,twimg.com,推特X
+DOMAIN-SUFFIX,twitpic.com,推特X
+DOMAIN-SUFFIX,t.co,推特X
+DOMAIN-SUFFIX,twitter.io,推特X
+DOMAIN-SUFFIX,twitterinc.com,推特X
+DOMAIN-SUFFIX,twtrdns.net,推特X
+
+# ===== Twitter图片CDN（精确匹配，确保走代理）=====
+DOMAIN,pbs.twimg.com,推特X
+DOMAIN,pbs-1.twimg.com,推特X
+DOMAIN,pbs-2.twimg.com,推特X
+DOMAIN,abs.twimg.com,推特X
+DOMAIN,abs-1.twimg.com,推特X
+DOMAIN,abs-2.twimg.com,推特X
+DOMAIN,ton.twimg.com,推特X
+DOMAIN,ton-1.twimg.com,推特X
+DOMAIN,ton-2.twimg.com,推特X
+DOMAIN,cdn.syndication.twimg.com,推特X
+DOMAIN,cdn.syndication-1.twimg.com,推特X
+DOMAIN,cdn.syndication-2.twimg.com,推特X
+DOMAIN,ma.twimg.com,推特X
+DOMAIN,ma-1.twimg.com,推特X
+DOMAIN,ma-2.twimg.com,推特X
+DOMAIN,video.twimg.com,推特X
+DOMAIN,video-1.twimg.com,推特X
+DOMAIN,video-2.twimg.com,推特X
+DOMAIN,prod-video-1.twimg.com,推特X
+DOMAIN,prod-video-2.twimg.com,推特X
+DOMAIN,prod-fastly-1.video.twimg.com,推特X
+DOMAIN,prod-fastly-2.video.twimg.com,推特X
+DOMAIN,prod-fastly-3.video.twimg.com,推特X
+DOMAIN,prod-fastly-4.video.twimg.com,推特X
+DOMAIN,prod-fastly-5.video.twimg.com,推特X
+DOMAIN,prod-fastly-6.video.twimg.com,推特X
+DOMAIN,prod-fastly-7.video.twimg.com,推特X
+DOMAIN,prod-fastly-8.video.twimg.com,推特X
+DOMAIN,prod-fastly-9.video.twimg.com,推特X
+DOMAIN,prod-fastly-10.video.twimg.com,推特X
+DOMAIN,prod-fastly-eu-central-1.video.twimg.com,推特X
+DOMAIN,prod-fastly-eu-west-1.video.twimg.com,推特X
+DOMAIN,prod-fastly-ap-south-1.video.twimg.com,推特X
+DOMAIN,prod-fastly-ap-northeast-1.video.twimg.com,推特X
+DOMAIN,prod-fastly-ap-southeast-1.video.twimg.com,推特X
+DOMAIN,prod-fastly-sa-east-1.video.twimg.com,推特X
+
+# ===== Twitter API域名 =====
+DOMAIN,api.twitter.com,推特X
+DOMAIN,api.x.com,推特X
+DOMAIN,upload.twitter.com,推特X
+DOMAIN,upload.x.com,推特X
+DOMAIN,stream.twitter.com,推特X
+DOMAIN,userstream.twitter.com,推特X
+DOMAIN,sitestream.twitter.com,推特X
+DOMAIN,caps.twitter.com,推特X
+DOMAIN,capitol.twitter.com,推特X
+DOMAIN,mobile.twitter.com,推特X
+DOMAIN,mobile.x.com,推特X
+
+# ===== Twitter分析/统计域名 =====
+DOMAIN,analytics.twitter.com,推特X
+DOMAIN,ads.twitter.com,推特X
+DOMAIN,business.twitter.com,推特X
+DOMAIN,help.twitter.com,推特X
+DOMAIN,status.twitter.com,推特X
+DOMAIN,blog.twitter.com,推特X
+DOMAIN,developer.twitter.com,推特X
+DOMAIN,docs.fabric.io,推特X
+DOMAIN,data-api.twitter.com,推特X
+DOMAIN,gnip.com,推特X
+
+# ===== Twitter短链/跳转 =====
+DOMAIN,t.co,推特X
+DOMAIN-SUFFIX,t.co,推特X
+
+# ===== Twitter IP段（确保所有连接走代理）=====
+IP-CIDR,104.244.42.0/24,推特X,no-resolve
+IP-CIDR,104.244.43.0/24,推特X,no-resolve
+IP-CIDR,192.133.76.0/22,推特X,no-resolve
+IP-CIDR,199.16.156.0/22,推特X,no-resolve
+IP-CIDR,199.59.148.0/22,推特X,no-resolve
+IP-CIDR,199.59.150.0/24,推特X,no-resolve
+IP-CIDR,202.160.128.0/22,推特X,no-resolve
+IP-CIDR,209.237.192.0/19,推特X,no-resolve
+
+# ===== 配置说明 =====
+# 图片优化 → URL Rewrite自动改写为name=orig最高画质
+# 头像优化 → 自动去掉_normal/_bigger/_mini获取原图
+# 视频优化 → always-raw-tcp+tcp-fast-open提升连接速度
+# 视频画质 → Twitter客户端自动选择最佳码率(HLS自适应)
+# 无MITM → 不修改视频流内容，避免兼容性问题
+# 无脚本 → 零额外发包，不干扰视频播放
