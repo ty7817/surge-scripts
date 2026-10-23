@@ -1,19 +1,29 @@
 // ============================================
-// 节点测速推荐面板 v1（Surge）
+// 节点测速推荐面板 v2（Surge）
 // 功能：
 //   1. 自动识别所有节点与策略组
-//   2. 用策略组的测速地址（generate_204）对每个节点实测延迟（每个节点只测一次，并发）
+//   2. 对每个节点实测延迟（每个节点只测一次，并发，多测速URL容错）
 //   3. 为每个地区组 / 功能组推荐最快节点
-//   4. 解析每个应用组当前链路，给出最终落地节点与推荐
-// 健壮性：全局超时兜底、单节点失败不影响整体、必定 $done
+//   4. 解析每个应用组当前链路，给出最终落地节点
+// 健壮性：
+//   - 多个测速地址依次容错（主地址失败自动换备用，避免单一站点被墙）
+//   - 全局超时兜底、单节点失败不影响整体、必定 $done
+//   - 面板底部给出失败原因诊断统计
 // ============================================
 
-var TEST_URL = "http://www.gstatic.com/generate_204";
-var CONCURRENCY = 20;       // 测速并发
-var NODE_TIMEOUT = 3;       // 单节点超时（秒）
-var GLOBAL_DEADLINE = 50000; // 全局兜底（毫秒）
+// 测速地址（按优先级；任一返回 204/2xx 即视为可用）
+// 首选 Cloudflare（你配置里的 proxy-test-url，全球最稳，不依赖 Google）
+var TEST_URLS = [
+  "http://cp.cloudflare.com/generate_204",
+  "http://www.gstatic.com/generate_204",
+  "http://www.google.com/generate_204",
+  "http://www.apple.com/library/test/success.html"
+];
+var CONCURRENCY = 12;        // 测速并发（Surge 单脚本上限20，留余量）
+var NODE_TIMEOUT = 5;        // 单节点单次请求超时（秒）
+var GLOBAL_DEADLINE = 55000; // 全局兜底（毫秒）
 
-// 需要测速并推荐的“节点组”（含具体节点的 url-test 组）
+// 需要测速并推荐的“节点组”
 var SERVER_GROUPS = [
   { name: "香港节点",    flag: "🇭🇰", short: "香港" },
   { name: "美国节点",    flag: "🇺🇸", short: "美国" },
@@ -24,7 +34,7 @@ var SERVER_GROUPS = [
   { name: "⚙️ 我的节点", flag: "📱", short: "我的" }
 ];
 
-// 需要展示链路推荐的“应用组”（select 组）
+// 需要展示链路的“应用组”
 var APP_GROUPS = [
   "主节点", "谷歌服务", "油管视频", "奈飞视频", "电报信息", "推特X",
   "GitHub", "AI服务", "TikTok短视频", "Emby影院", "微软服务",
@@ -40,47 +50,70 @@ function httpAPI(method, path, body) {
   });
 }
 
-// ---------- 单节点测速 ----------
-function measureNode(nodeName) {
+// ---------- 单次 HEAD 请求 ----------
+function headOnce(nodeName, url) {
   return new Promise(function (resolve) {
     var start = Date.now();
     try {
       $httpClient.head({
-        url: TEST_URL,
+        url: url,
         policy: nodeName,
         timeout: NODE_TIMEOUT,
-        "auto-redirect": true
+        "auto-redirect": false,
+        headers: { "Cache-Control": "no-cache", "Pragma": "no-cache" }
       }, function (error, response) {
-        var elapsed = Date.now() - start;
         var status = response && response.status;
-        if (!error && (status === 204 || status === 200)) {
-          resolve({ node: nodeName, ok: true, latency: elapsed });
-        } else {
-          resolve({ node: nodeName, ok: false, latency: -1 });
-        }
+        resolve({ error: error ? String(error) : null, status: status || 0, latency: Date.now() - start });
       });
     } catch (e) {
-      resolve({ node: nodeName, ok: false, latency: -1 });
+      resolve({ error: String(e), status: 0, latency: Date.now() - start });
     }
   });
 }
 
-// 并发池：每个节点只测一次
+// 失败原因归类
+function classifyReason(error, status) {
+  if (status && status >= 400) return "HTTP" + status;
+  if (error) {
+    if (/timeout|timed out|超时/i.test(error)) return "超时";
+    if (/unknown policy|invalid policy|not found|no such policy|不存在|未找到/i.test(error)) return "策略错误";
+    if (/refused|reset|closed|eof|connect/i.test(error)) return "连接错误";
+    return "其他错误";
+  }
+  return "无响应";
+}
+
+// ---------- 单节点测速（多 URL 容错）----------
+function measureNode(nodeName) {
+  var chain = Promise.resolve(null);
+  TEST_URLS.forEach(function (url) {
+    chain = chain.then(function (prev) {
+      if (prev && prev.ok) return prev;
+      return headOnce(nodeName, url).then(function (r) {
+        var good = !r.error && (r.status === 204 || (r.status >= 200 && r.status < 400));
+        if (good) {
+          return { node: nodeName, ok: true, latency: r.latency, reason: "" };
+        }
+        // 记录最后一次失败原因，继续尝试下一个 URL
+        return { node: nodeName, ok: false, latency: -1, reason: classifyReason(r.error, r.status) };
+      });
+    });
+  });
+  return chain;
+}
+
+// ---------- 并发池：每个节点只测一次 ----------
 function measureAll(nodes) {
   return new Promise(function (resolve) {
     var map = {};
-    var cursor = 0;
-    var active = 0;
-    var done = false;
-
-    function finish() { if (done) return; done = true; resolve(map); }
-
+    var cursor = 0, active = 0, settled = false;
+    function finish() { if (!settled) { settled = true; resolve(map); } }
     function pump() {
       while (active < CONCURRENCY && cursor < nodes.length) {
-        var node = nodes[cursor++];
+        var target = nodes[cursor++];
         active++;
-        measureNode(node).then(function (r) {
-          map[r.node] = r;   // 用结果自带的节点名，避免 var 闭包共享
+        measureNode(target).then(function (r) {
+          map[r.node] = r;
           active--;
           if (cursor >= nodes.length && active === 0) finish();
           else pump();
@@ -92,7 +125,7 @@ function measureAll(nodes) {
   });
 }
 
-// 递归收集某组包含的全部具体节点（展开 isGroup）
+// ---------- 递归收集组内全部具体节点 ----------
 function collectNodes(groupName, policyGroups, seen, depth) {
   if (depth > 6) return [];
   var arr = policyGroups[groupName] || [];
@@ -101,7 +134,7 @@ function collectNodes(groupName, policyGroups, seen, depth) {
     var item = arr[i];
     if (item.isGroup) {
       out = out.concat(collectNodes(item.name, policyGroups, seen, depth + 1));
-    } else if (!seen[item.name]) {
+    } else if (item.name && !seen[item.name]) {
       seen[item.name] = true;
       out.push(item.name);
     }
@@ -109,7 +142,7 @@ function collectNodes(groupName, policyGroups, seen, depth) {
   return out;
 }
 
-// 组内最快节点
+// ---------- 组内最快节点 ----------
 function bestOf(nodes, latencyMap) {
   var best = null;
   for (var i = 0; i < nodes.length; i++) {
@@ -121,8 +154,8 @@ function bestOf(nodes, latencyMap) {
   return best;
 }
 
-// 递归追踪应用组当前链路 → 最终落地节点
-function traceApp(groupName, policyGroups, latencyMap, groupBest, depth) {
+// ---------- 递归追踪应用组当前链路 ----------
+function traceApp(groupName, policyGroups, groupBest, depth) {
   if (depth > 8) return Promise.resolve(null);
   return httpAPI("GET", "v1/policy_groups/select?group_name=" + encodeURIComponent(groupName))
     .then(function (sel) {
@@ -130,20 +163,14 @@ function traceApp(groupName, policyGroups, latencyMap, groupBest, depth) {
       var p = sel.policy;
       if (p === "DIRECT") return { final: "DIRECT", latency: 0, via: "直连" };
       if (p.indexOf("REJECT") === 0) return { final: p, latency: -1, via: p };
-
-      // 指向另一个组
       if (policyGroups[p]) {
-        if (groupBest[p]) {
-          return { final: groupBest[p].node, latency: groupBest[p].latency, via: p };
-        }
-        return traceApp(p, policyGroups, latencyMap, groupBest, depth + 1)
-          .then(function (sub) {
-            return sub ? { final: sub.final, latency: sub.latency, via: p + "→" + sub.via } : null;
-          });
+        if (groupBest[p]) return { final: groupBest[p].node, latency: groupBest[p].latency, via: p };
+        return traceApp(p, policyGroups, groupBest, depth + 1).then(function (sub) {
+          return sub ? { final: sub.final, latency: sub.latency, via: p + "→" + sub.via } : null;
+        });
       }
-      // 指向具体节点
-      var r = latencyMap[p];
-      return { final: p, latency: r && r.ok ? r.latency : -1, via: p };
+      // 具体节点：延迟从 groupBest 无法直接取，标记为 -1（由渲染层补）
+      return { final: p, latency: -2, via: p };
     });
 }
 
@@ -159,31 +186,26 @@ function render(data) {
   var groupBest = data.groupBest || {};
   var groupNodes = data.groupNodes || {};
   var appTrace = data.appTrace || {};
-  var policyGroups = data.policyGroups || {};
 
   var totalNodes = Object.keys(latencyMap).length;
   var okNodes = 0;
+  var reasonStats = {};
   Object.keys(latencyMap).forEach(function (n) {
-    if (latencyMap[n].ok) okNodes++;
+    var r = latencyMap[n];
+    if (r.ok) okNodes++;
+    else reasonStats[r.reason || "未知"] = (reasonStats[r.reason || "未知"] || 0) + 1;
   });
 
   var lines = [];
 
-  // 全局最快
-  var globalBest = groupBest["⚡ 全网最优"] || bestOf(Object.keys(latencyMap), latencyMap);
-
   lines.push("【地区组推荐】");
   SERVER_GROUPS.forEach(function (g) {
     var b = groupBest[g.name];
-    if (b) {
-      lines.push(g.flag + " " + g.short + " ➟ " + b.node + " (" + b.latency + "ms)");
-    } else {
-      lines.push(g.flag + " " + g.short + " ➟ 无可用节点");
-    }
+    if (b) lines.push(g.flag + " " + g.short + " ➟ " + b.node + " (" + b.latency + "ms)");
+    else lines.push(g.flag + " " + g.short + " ➟ 无可用节点");
   });
-  if (globalBest) {
-    lines.push("⚡ 全网最优 ➟ " + globalBest.node + " (" + globalBest.latency + "ms)");
-  }
+  var globalBest = groupBest["⚡ 全网最优"];
+  if (globalBest) lines.push("⚡ 全网最优 ➟ " + globalBest.node + " (" + globalBest.latency + "ms)");
 
   lines.push("");
   lines.push("【应用组当前链路】");
@@ -193,22 +215,33 @@ function render(data) {
       lines.push("• " + g + " ➟ 无法获取");
     } else if (t.final === "DIRECT") {
       lines.push("• " + g + " ➟ 直连");
-    } else if (t.latency >= 0) {
-      // 精简节点名（去掉flag和冗长前缀）
-      var short = t.final;
-      lines.push("• " + g + " ➟ " + short + " (" + t.latency + "ms)");
     } else {
-      lines.push("• " + g + " ➟ " + t.final + " (超时)");
+      // 若落地是具体节点，尝试从 latencyMap 补延迟
+      var lat = t.latency;
+      var r = latencyMap[t.final];
+      if (lat === -2 && r) lat = r.ok ? r.latency : -1;
+      if (lat >= 0) lines.push("• " + g + " ➟ " + t.final + " (" + lat + "ms)");
+      else lines.push("• " + g + " ➟ " + t.final + " (超时)");
     }
   });
 
+  // 诊断统计
+  if (okNodes < totalNodes) {
+    lines.push("");
+    lines.push("【失败诊断】");
+    Object.keys(reasonStats).forEach(function (k) {
+      lines.push(k + " ×" + reasonStats[k]);
+    });
+  }
+
   var elapsed = ((Date.now() - startTs) / 1000).toFixed(1);
-  var allHealthy = totalNodes > 0 && okNodes === totalNodes;
+  var ratio = totalNodes ? okNodes / totalNodes : 0;
+  var color = ratio === 1 ? "#34C759" : (ratio >= 0.5 ? "#FF9500" : "#FF3B30");
   $done({
     title: "⚡ 节点推荐 " + okNodes + "/" + totalNodes + " 可用",
     content: lines.join("\n") + "\n\n测速耗时 " + elapsed + "s · 共" + totalNodes + "节点",
     icon: "speedometer",
-    "icon-color": allHealthy ? "#34C759" : "#5856D6"
+    "icon-color": color
   });
 }
 
@@ -216,11 +249,9 @@ function render(data) {
 setTimeout(function () { render(null); }, GLOBAL_DEADLINE);
 
 (async function () {
-  // 1. 所有策略组结构
   var policyGroups = await httpAPI("GET", "v1/policy_groups");
   if (!policyGroups) return render(null);
 
-  // 2. 收集各节点组的节点
   var groupNodes = {};
   var globalSeen = {};
   var allNodes = [];
@@ -233,26 +264,21 @@ setTimeout(function () { render(null); }, GLOBAL_DEADLINE);
     });
   });
 
-  // 3. 并发实测全部节点
   var latencyMap = await measureAll(allNodes);
 
-  // 4. 各节点组最快
   var groupBest = {};
   SERVER_GROUPS.forEach(function (g) {
     groupBest[g.name] = bestOf(groupNodes[g.name], latencyMap);
   });
-  // 全网最优 = 全部节点最快
   groupBest["⚡ 全网最优"] = bestOf(allNodes, latencyMap);
 
-  // 5. 应用组链路追踪
   var appTrace = {};
   for (var i = 0; i < APP_GROUPS.length; i++) {
-    var g = APP_GROUPS[i];
-    appTrace[g] = await traceApp(g, policyGroups, latencyMap, groupBest, 0);
+    appTrace[APP_GROUPS[i]] = await traceApp(APP_GROUPS[i], policyGroups, groupBest, 0);
   }
 
   render({
     latencyMap: latencyMap, groupBest: groupBest,
-    groupNodes: groupNodes, appTrace: appTrace, policyGroups: policyGroups
+    groupNodes: groupNodes, appTrace: appTrace
   });
 })()["catch"](function () { render(null); });
