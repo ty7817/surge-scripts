@@ -1,16 +1,19 @@
 // ============================================
-// 节点测速推荐面板 v6.0（正确API版）
-// 正确API：/v1/policies/benchmark_results（按lineHash索引）
+// 全策略组节点推荐面板 v7.0
+// 功能：测试每个应用策略组，推荐组内最快节点，按延迟排序
 // ============================================
 
-var SERVER_GROUPS = [
-  { name: "香港节点",    flag: "🇭🇰", short: "香港" },
-  { name: "美国节点",    flag: "🇺🇸", short: "美国" },
-  { name: "日本节点",    flag: "🇯🇵", short: "日本" },
-  { name: "台湾节点",    flag: "🇹🇼", short: "台湾" },
-  { name: "新加坡节点",  flag: "🇸🇬", short: "新加坡" },
-  { name: "韩国节点",    flag: "🇰🇷", short: "韩国" },
-  { name: "⚙️ 我的节点", flag: "📱", short: "我的" }
+var APP_GROUPS = [
+  { name: "油管视频",     icon: "📺" },
+  { name: "奈飞视频",     icon: "🎬" },
+  { name: "推特X",       icon: "🐦" },
+  { name: "电报信息",     icon: "✈️" },
+  { name: "TikTok短视频",  icon: "🎵" },
+  { name: "谷歌服务",     icon: "🔍" },
+  { name: "Emby影院",    icon: "🎞️" },
+  { name: "AI服务",      icon: "🤖" },
+  { name: "GitHub",      icon: "🐙" },
+  { name: "微软服务",     icon: "🪟" }
 ];
 
 // ---------- HTTP API ----------
@@ -33,24 +36,44 @@ function render(data) {
   var groupBest = data.groupBest || {};
 
   var lines = [];
-  lines.push("【推荐最优节点】");
 
-  var okCount = 0;
-  SERVER_GROUPS.forEach(function (g) {
+  // 收集所有有结果的组
+  var results = [];
+  APP_GROUPS.forEach(function (g) {
     var b = groupBest[g.name];
     if (b) {
-      okCount++;
-      lines.push(g.flag + " " + g.short + " ➟ " + b.node + " (" + b.latency + "ms)");
-    } else {
-      lines.push(g.flag + " " + g.short + " ➟ 无可用节点");
+      results.push({ icon: g.icon, name: g.name, node: b.node, latency: b.latency });
     }
   });
 
+  // 按延迟从低到高排序
+  results.sort(function (a, b) { return a.latency - b.latency; });
+
+  if (results.length > 0) {
+    lines.push("【按网速排序推荐】");
+    results.forEach(function (r) {
+      lines.push(r.icon + " " + r.name + " ➟ " + r.node + " (" + r.latency + "ms)");
+    });
+  }
+
+  // 无结果的组
+  var noResult = [];
+  APP_GROUPS.forEach(function (g) {
+    if (!groupBest[g.name]) {
+      noResult.push(g.icon + " " + g.name + " ➟ 无可用节点");
+    }
+  });
+  if (noResult.length > 0) {
+    if (results.length > 0) lines.push("");
+    lines.push("【待检测】");
+    noResult.forEach(function (l) { lines.push(l); });
+  }
+
   var elapsed = ((Date.now() - startTs) / 1000).toFixed(1);
-  var color = okCount >= 5 ? "#34C759" : (okCount >= 2 ? "#FF9500" : "#FF3B30");
+  var color = results.length >= 7 ? "#34C759" : (results.length >= 4 ? "#FF9500" : "#FF3B30");
 
   $done({
-    title: "⚡ 节点推荐 " + okCount + "/" + SERVER_GROUPS.length,
+    title: "⚡ 节点推荐 " + results.length + "/" + APP_GROUPS.length,
     content: lines.join("\n") + "\n\n测速耗时 " + elapsed + "s",
     icon: "speedometer",
     "icon-color": color
@@ -58,28 +81,28 @@ function render(data) {
 }
 
 // 全局兜底
-setTimeout(function () { render(null); }, 45000);
+setTimeout(function () { render(null); }, 60000);
 
 (async function () {
-  // 1. 获取所有策略组（拿到每个节点的lineHash）
+  // 1. 获取所有策略组
   var policyGroups = await httpAPI("/v1/policy_groups");
   if (!policyGroups) return render(null);
 
-  // 2. 触发所有地区组测速
-  for (var i = 0; i < SERVER_GROUPS.length; i++) {
-    await httpAPI("/v1/policy_groups/test", "POST", { group_name: SERVER_GROUPS[i].name });
+  // 2. 触发所有应用组测速
+  for (var i = 0; i < APP_GROUPS.length; i++) {
+    await httpAPI("/v1/policy_groups/test", "POST", { group_name: APP_GROUPS[i].name });
   }
 
   // 3. 等待测速完成
-  await new Promise(function (r) { setTimeout(r, 15000); });
+  await new Promise(function (r) { setTimeout(r, 20000); });
 
-  // 4. 获取benchmark结果（正确API！）
+  // 4. 获取benchmark结果
   var benchmark = await httpAPI("/v1/policies/benchmark_results");
 
   var groupBest = {};
 
   if (benchmark && typeof benchmark === "object") {
-    SERVER_GROUPS.forEach(function (g) {
+    APP_GROUPS.forEach(function (g) {
       var groupNodes = policyGroups[g.name];
       if (!groupNodes || !Array.isArray(groupNodes)) return;
 
