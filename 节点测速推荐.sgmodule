@@ -1,10 +1,10 @@
 #!name=节点测速推荐
 #!desc=全策略组节点推荐：地区节点排名+应用策略最优推荐
-#!author=v8.0
+#!author=v8.1
 #!category=网络优化
 
 [Panel]
 节点测速推荐 = script-name=node-recommend, update-interval=0
 
 [Script]
-node-recommend = type=generic, timeout=60, script-update-interval=86400, script-path=https://cdn.jsdelivr.net/gh/ty7817/surge-scripts@5cb94650a43fa07af6422adfa39d64585c268ff2/node-recommend.js
+node-recommend = type=generic, timeout=60, script-update-interval=86400, script-path=https://raw.githubusercontent.com/ty7817/surge-scripts/main/node-recommend.js
