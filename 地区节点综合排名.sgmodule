@@ -31,12 +31,12 @@
 # 3. 改进Netflix测试URL为具体影片页
 #
 # 【触发方式】
-# 每天0点、8点、12点、16点自动执行（非视频播放时段）
+# 每天0点、8点、12点、20点自动执行（非视频播放时段）
 #
 # 【前置要求】
 # Surge HTTP API必须开启
 # ============================================
 
 [Script]
-# 每天0点、8点、12点、16点自动执行
-region-rank = type=cron,cronexp=0 0,8,12,16 * * *,script-path=https://cdn.jsdelivr.net/gh/ty7817/surge-scripts@e73a6960609d44ded72ffa64caec43315c7b512b/region-streaming-rank.js,timeout=300,wake-system=1,script-update-interval=86400
+# 每天0点、8点、12点、20点自动执行
+region-rank = type=cron,cronexp=0 0,8,12,20 * * *,script-path=https://cdn.jsdelivr.net/gh/ty7817/surge-scripts@e73a6960609d44ded72ffa64caec43315c7b512b/region-streaming-rank.js,timeout=300,wake-system=1,script-update-interval=86400
