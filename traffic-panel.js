@@ -1,5 +1,5 @@
 /**
- * 流量统计面板 v2.0 优化版
+ * 流量统计面板 v2.1 优化版
  * 功能：显示实时上传/下载流量、速度、峰值
  * 点击切换网络界面（WiFi/Cellular）
  */
@@ -9,11 +9,11 @@ let params = getParams($argument)
 ;(async () => {
 
   let traffic = (await httpAPI("/v1/traffic"))
-  let interface = traffic.interface
+  let netInterfaces = traffic.interface
 
   /* 获取所有网络界面 */
   let allNet = []
-  for (var key in interface) {
+  for (var key in netInterfaces) {
     allNet.push(key)
   }
 
@@ -41,7 +41,7 @@ let params = getParams($argument)
   }
 
   net = allNet[index]
-  let network = interface[net]
+  let network = netInterfaces[net]
 
   let outCurrentSpeed = speedTransform(network.outCurrentSpeed)  // 上传速度
   let outMaxSpeed = speedTransform(network.outMaxSpeed)          // 最大上传速度
