@@ -1,0 +1,158 @@
+#!name=Telegram访问增强_自动优化版
+#!desc=always-raw-tcp+完整DC endpoints+自动测速选点，每10分钟自动切换最快节点
+#!author=综合优化版 v6 自动优化版
+#!category=网络优化
+#!date=2026-10-23
+
+# ============================================
+# 【v6自动优化版 — 自动测速选点】
+# 已自动识别你的策略组：「电报信息」
+# 导入后直接生效，无需创建新策略组
+#
+# 【自动优化功能】
+# 每10分钟自动通过Surge HTTP API测试「电报信息」策略组所有节点延迟
+# 自动切换到延迟最低的节点，确保看图看视频始终走最快线路
+# 切换时发送通知提醒
+#
+# 【加速手段】
+# 1. always-raw-tcp-hosts → Telegram IP走原始TCP，避免HTTP引擎开销
+# 2. 完整DC endpoints → pluto/venus/aurora/vesta/flora + kws1-5 + zws1-5
+# 3. TCP Fast Open → 减少TCP握手延迟
+# 4. 自动测速选点 → 每10分钟自动切换最快节点
+# 5. 精确DC IP段 + ASN → 确保所有MTProto连接走代理
+#
+# 【前置要求】
+# Surge HTTP API必须开启（你的配置已开启：ty.20040120@127.0.0.1:6171）
+# 如修改了http-api密码，需同步修改脚本中的API_PASS
+#
+# 【DC分布参考】
+# DC1(pluto/kws1/zws1) ASN59930 → 美国
+# DC2(venus/kws2/zws2) ASN44907 → 欧洲
+# DC3(aurora/kws3/zws3) ASN211157 → 美国
+# DC4(vesta/kws4/zws4) ASN62041 → 欧洲
+# DC5(flora/kws5/zws5) ASN62014 → 新加坡
+# ============================================
+
+[General]
+# Telegram IP走原始TCP（最关键的加速！避免HTTP引擎开销）
+always-raw-tcp-hosts = %APPEND% 91.108.*, 149.154.1*, 5.28.195.*, 185.76.151.*, 91.105.1*, 109.239.140.*
+# TCP Fast Open加速连接建立
+tcp-fast-open = true
+
+[Script]
+# 自动测速选点：每10分钟测试「电报信息」策略组，自动切换最快节点
+telegram-auto-select = type=cron,cronexp=*/10 * * * *,script-path=https://cdn.jsdelivr.net/gh/ty7817/surge-scripts@004b2d1dd2fc6b52574be3916db94c45ed60fba6/telegram-auto-select.js,timeout=60,script-update-interval=86400
+
+[Rule]
+# ===== Telegram域名（31条）=====
+DOMAIN,api.imem.app,电报信息
+DOMAIN,api.swiftgram.app,电报信息
+DOMAIN-SUFFIX,cdn-telegram.org,电报信息
+DOMAIN-SUFFIX,cdn.telegram.org,电报信息
+DOMAIN-SUFFIX,cdn1.telegram.org,电报信息
+DOMAIN-SUFFIX,cdn2.telegram.org,电报信息
+DOMAIN-SUFFIX,cdn3.telegram.org,电报信息
+DOMAIN-SUFFIX,cdn4.telegram.org,电报信息
+DOMAIN-SUFFIX,cdn5.telegram.org,电报信息
+DOMAIN-SUFFIX,comments.app,电报信息
+DOMAIN-SUFFIX,contest.com,电报信息
+DOMAIN-SUFFIX,graph.org,电报信息
+DOMAIN-SUFFIX,legra.ph,电报信息
+DOMAIN-SUFFIX,mbrx.app,电报信息
+DOMAIN-SUFFIX,quiz.directory,电报信息
+DOMAIN-SUFFIX,stel.com,电报信息
+DOMAIN-SUFFIX,t.me,电报信息
+DOMAIN-SUFFIX,tdesktop.com,电报信息
+DOMAIN-SUFFIX,telega.one,电报信息
+DOMAIN-SUFFIX,telegra.ph,电报信息
+DOMAIN-SUFFIX,telegram-cdn.org,电报信息
+DOMAIN-SUFFIX,telegram.dog,电报信息
+DOMAIN-SUFFIX,telegram.me,电报信息
+DOMAIN-SUFFIX,telegram.org,电报信息
+DOMAIN-SUFFIX,telegram.space,电报信息
+DOMAIN-SUFFIX,telegramdownload.com,电报信息
+DOMAIN-SUFFIX,telesco.pe,电报信息
+DOMAIN-SUFFIX,tg.dev,电报信息
+DOMAIN-SUFFIX,tx.me,电报信息
+DOMAIN-SUFFIX,usercontent.dev,电报信息
+DOMAIN-KEYWORD,nicegram,电报信息
+
+# ===== Telegram Web DC endpoints（完整30条）=====
+# DC1 - 美国
+DOMAIN,pluto.web.telegram.org,电报信息
+DOMAIN,pluto-1.web.telegram.org,电报信息
+DOMAIN,kws1.web.telegram.org,电报信息
+DOMAIN,kws1-1.web.telegram.org,电报信息
+DOMAIN,zws1.web.telegram.org,电报信息
+DOMAIN,zws1-1.web.telegram.org,电报信息
+# DC2 - 欧洲
+DOMAIN,venus.web.telegram.org,电报信息
+DOMAIN,venus-1.web.telegram.org,电报信息
+DOMAIN,kws2.web.telegram.org,电报信息
+DOMAIN,kws2-1.web.telegram.org,电报信息
+DOMAIN,zws2.web.telegram.org,电报信息
+DOMAIN,zws2-1.web.telegram.org,电报信息
+# DC3 - 美国
+DOMAIN,aurora.web.telegram.org,电报信息
+DOMAIN,aurora-1.web.telegram.org,电报信息
+DOMAIN,kws3.web.telegram.org,电报信息
+DOMAIN,kws3-1.web.telegram.org,电报信息
+DOMAIN,zws3.web.telegram.org,电报信息
+DOMAIN,zws3-1.web.telegram.org,电报信息
+# DC4 - 欧洲
+DOMAIN,vesta.web.telegram.org,电报信息
+DOMAIN,vesta-1.web.telegram.org,电报信息
+DOMAIN,kws4.web.telegram.org,电报信息
+DOMAIN,kws4-1.web.telegram.org,电报信息
+DOMAIN,zws4.web.telegram.org,电报信息
+DOMAIN,zws4-1.web.telegram.org,电报信息
+# DC5 - 新加坡
+DOMAIN,flora.web.telegram.org,电报信息
+DOMAIN,flora-1.web.telegram.org,电报信息
+DOMAIN,kws5.web.telegram.org,电报信息
+DOMAIN,kws5-1.web.telegram.org,电报信息
+DOMAIN,zws5.web.telegram.org,电报信息
+DOMAIN,zws5-1.web.telegram.org,电报信息
+
+# ===== Telegram MTProto IP段（精确DC段，核心！）=====
+# DC1 - 阿姆斯特丹
+IP-CIDR,91.108.4.0/22,电报信息,no-resolve
+# DC2 - 阿姆斯特丹
+IP-CIDR,91.108.8.0/22,电报信息,no-resolve
+# DC3 - 阿姆斯特丹
+IP-CIDR,91.108.12.0/22,电报信息,no-resolve
+# DC4 - 阿姆斯特丹
+IP-CIDR,91.108.16.0/22,电报信息,no-resolve
+# DC5 - 新加坡
+IP-CIDR,91.108.20.0/22,电报信息,no-resolve
+# DC6/其他
+IP-CIDR,91.108.56.0/22,电报信息,no-resolve
+# 通用段
+IP-CIDR,149.154.160.0/20,电报信息,no-resolve
+IP-CIDR,109.239.140.0/24,电报信息,no-resolve
+IP-CIDR,5.28.192.0/18,电报信息,no-resolve
+IP-CIDR,139.59.210.98/32,电报信息,no-resolve
+IP-CIDR,196.55.216.167/32,电报信息,no-resolve
+
+# ===== Telegram IPv6段 =====
+IP-CIDR6,2001:67c:4e8::/48,电报信息,no-resolve
+IP-CIDR6,2001:b28:f23c::/47,电报信息,no-resolve
+IP-CIDR6,2001:b28:f23f::/48,电报信息,no-resolve
+IP-CIDR6,2a0a:f280::/29,电报信息,no-resolve
+
+# ===== Telegram ASN（数据中心自治系统号）=====
+IP-ASN,211157,电报信息,no-resolve
+IP-ASN,44907,电报信息,no-resolve
+IP-ASN,59930,电报信息,no-resolve
+IP-ASN,62014,电报信息,no-resolve
+IP-ASN,62041,电报信息,no-resolve
+
+# ===== 配置说明 =====
+# always-raw-tcp-hosts → Telegram IP走原始TCP，避免HTTP引擎开销（最关键加速）
+# tcp-fast-open → 减少TCP握手延迟
+# 自动测速选点 → 每10分钟自动切换最快节点
+# force-http-engine → 不使用，Telegram客户端用MTProto不用HTTP
+# always-real-ip → 不使用，可能导致DNS异常
+# MITM → 不使用，WSS不需要解密
+# PROCESS-NAME → 不使用，iOS上不生效
+# 91.108.0.0/16 → 已拆为6个精确DC段（/22）
