@@ -1,36 +1,30 @@
 #!name=Telegram访问增强_自动优化版
-#!desc=always-raw-tcp+完整DC endpoints+自动测速选点，每10分钟自动切换最快节点
-#!author=综合优化版 v6 自动优化版
+#!desc=always-raw-tcp+完整DC endpoints+流量触发自动测速选点，用Telegram时自动切换最快节点
+#!author=综合优化版 v6.1 流量触发版
 #!category=网络优化
 #!date=2026-10-23
 
 # ============================================
-# 【v6自动优化版 — 自动测速选点】
+# 【v6.1流量触发版 — 用Telegram时自动优化】
 # 已自动识别你的策略组：「电报信息」
 # 导入后直接生效，无需创建新策略组
 #
 # 【自动优化功能】
-# 每10分钟自动通过Surge HTTP API测试「电报信息」策略组所有节点延迟
-# 自动切换到延迟最低的节点，确保看图看视频始终走最快线路
+# 当检测到Telegram流量时自动触发测速选点
+# 自动切换到延迟最低的节点，确保看图看视频走最快线路
+# 5分钟节流，避免频繁执行
 # 切换时发送通知提醒
 #
 # 【加速手段】
 # 1. always-raw-tcp-hosts → Telegram IP走原始TCP，避免HTTP引擎开销
 # 2. 完整DC endpoints → pluto/venus/aurora/vesta/flora + kws1-5 + zws1-5
 # 3. TCP Fast Open → 减少TCP握手延迟
-# 4. 自动测速选点 → 每10分钟自动切换最快节点
+# 4. 流量触发自动选点 → 用Telegram时自动切换最快节点
 # 5. 精确DC IP段 + ASN → 确保所有MTProto连接走代理
 #
 # 【前置要求】
 # Surge HTTP API必须开启（你的配置已开启：ty.20040120@127.0.0.1:6171）
 # 如修改了http-api密码，需同步修改脚本中的API_PASS
-#
-# 【DC分布参考】
-# DC1(pluto/kws1/zws1) ASN59930 → 美国
-# DC2(venus/kws2/zws2) ASN44907 → 欧洲
-# DC3(aurora/kws3/zws3) ASN211157 → 美国
-# DC4(vesta/kws4/zws4) ASN62041 → 欧洲
-# DC5(flora/kws5/zws5) ASN62014 → 新加坡
 # ============================================
 
 [General]
@@ -40,8 +34,8 @@ always-raw-tcp-hosts = %APPEND% 91.108.*, 149.154.1*, 5.28.195.*, 185.76.151.*, 
 tcp-fast-open = true
 
 [Script]
-# 自动测速选点：每10分钟测试「电报信息」策略组，自动切换最快节点
-telegram-auto-select = type=cron,cronexp=*/10 * * * *,script-path=https://cdn.jsdelivr.net/gh/ty7817/surge-scripts@004b2d1dd2fc6b52574be3916db94c45ed60fba6/telegram-auto-select.js,timeout=60,script-update-interval=86400
+# 自动测速选点：Telegram有流量时触发，自动切换最快节点（5分钟节流）
+telegram-auto-select = type=http-request,pattern=^https?://.*(telegram\.org|t\.me|tdesktop\.com|telegra\.ph|telegram-cdn\.org|cdn-telegram\.org),script-path=https://cdn.jsdelivr.net/gh/ty7817/surge-scripts@8e27ad4add37b84ca2a8300499fa3770740177d5/telegram-auto-select.js,timeout=60,script-update-interval=86400
 
 [Rule]
 # ===== Telegram域名（31条）=====
@@ -150,7 +144,7 @@ IP-ASN,62041,电报信息,no-resolve
 # ===== 配置说明 =====
 # always-raw-tcp-hosts → Telegram IP走原始TCP，避免HTTP引擎开销（最关键加速）
 # tcp-fast-open → 减少TCP握手延迟
-# 自动测速选点 → 每10分钟自动切换最快节点
+# 流量触发自动选点 → 用Telegram时自动切换最快节点（5分钟节流）
 # force-http-engine → 不使用，Telegram客户端用MTProto不用HTTP
 # always-real-ip → 不使用，可能导致DNS异常
 # MITM → 不使用，WSS不需要解密
