@@ -1,10 +1,10 @@
 #!name=节点测速推荐
-#!desc=测试每个地区组所有节点延迟，推荐最优节点
-#!author=v6.0
+#!desc=测试每个应用策略组，推荐组内最快节点，按网速排序
+#!author=v7.0
 #!category=网络优化
 
 [Panel]
 节点测速推荐 = script-name=node-recommend, update-interval=0
 
 [Script]
-node-recommend = type=generic, timeout=45, script-update-interval=86400, script-path=https://cdn.jsdelivr.net/gh/ty7817/surge-scripts@807a9ca591ae613c7a22257d750a2f57d047ac39/node-recommend.js
+node-recommend = type=generic, timeout=60, script-update-interval=86400, script-path=https://cdn.jsdelivr.net/gh/ty7817/surge-scripts@60b411a73a0f2ef7273ba0258c33e6e9f8d39436/node-recommend.js
