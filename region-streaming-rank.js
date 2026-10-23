@@ -1,11 +1,9 @@
 /**
- * 地区节点流媒体+延迟综合排名脚本 v1.1
- * 对每个地区节点组进行流媒体通过率+延迟综合评分
- * 自动连接每个地区的最优节点
+ * 地区节点流媒体+延迟综合排名脚本 v1.2
+ * 修正API路径，优化测试逻辑
  * 
  * 综合评分 = 流媒体通过率 * 60% + 延迟得分 * 40%
  * 智能策略：先测当前节点，流媒体不达标才遍历其他节点
- * 执行时间控制在180秒内
  */
 
 const REGION_GROUPS = ['香港节点', '美国节点', '日本节点', '台湾节点', '新加坡节点', '韩国节点']
@@ -13,15 +11,15 @@ const REGION_GROUPS = ['香港节点', '美国节点', '日本节点', '台湾�
 const DELAY_TEST_URL = 'http://www.gstatic.com/generate_204'
 
 const STREAMING_TESTS = [
-  { name: 'Netflix', url: 'https://www.netflix.com', expectStatus: 200 },
-  { name: 'YouTube', url: 'https://www.youtube.com', expectStatus: 200 },
-  { name: 'Disney+', url: 'https://www.disneyplus.com', expectStatus: 200 },
+  { name: 'Netflix', url: 'https://www.netflix.com/title/80113701' },
+  { name: 'YouTube', url: 'https://www.youtube.com/' },
+  { name: 'Disney+', url: 'https://www.disneyplus.com/' },
 ]
 
 const STREAMING_WEIGHT = 60
 const DELAY_WEIGHT = 40
-const STREAMING_THRESHOLD = 2  // 流媒体至少通过2个才算达标
-const MAX_EXTRA_TEST = 2  // 当前节点不达标时，最多额外测试2个备选节点
+const STREAMING_THRESHOLD = 2
+const MAX_EXTRA_TEST = 2
 
 function httpAPI(method, path, body) {
   return new Promise((resolve, reject) => {
@@ -33,6 +31,16 @@ function httpAPI(method, path, body) {
       }
     })
   })
+}
+
+async function getAllPolicyGroups() {
+  try {
+    const result = await httpAPI('GET', '/v1/policy_groups')
+    return result || []
+  } catch (e) {
+    console.log('获取策略组列表失败: ' + e.message)
+    return []
+  }
 }
 
 async function getCurrentPolicy(groupName) {
@@ -47,9 +55,10 @@ async function getCurrentPolicy(groupName) {
 
 async function getGroupNodes(groupName) {
   try {
-    const result = await httpAPI('GET', `/v1/policy_groups/${encodeURIComponent(groupName)}`)
-    if (result && result.policies) {
-      return result.policies
+    const allGroups = await getAllPolicyGroups()
+    const group = allGroups.find(g => g.name === groupName || g.group_name === groupName)
+    if (group) {
+      return group.policies || group.nodes || group.list || []
     }
     return []
   } catch (e) {
@@ -104,16 +113,11 @@ function calcScore(delay, streamingPass) {
 }
 
 async function testNode(groupName, nodeName) {
-  // 切换到节点
   setPolicy(groupName, nodeName)
-  await sleep(800)  // 等待切换生效
+  await sleep(1500)  // 等待切换生效
   
-  // 测试延迟
   const delay = await testDelay()
-  
-  // 测试流媒体
   const streamingPass = await testStreaming()
-  
   const score = calcScore(delay, streamingPass)
   
   console.log(`  节点 ${nodeName}: 延迟=${delay}ms, 流媒体=${streamingPass}/${STREAMING_TESTS.length}, 评分=${score.toFixed(1)}`)
@@ -159,11 +163,9 @@ async function main() {
     if (currentResult.streamingPass < STREAMING_THRESHOLD) {
       console.log(`  当前节点流媒体不达标(${currentResult.streamingPass}/${STREAMING_TESTS.length})，尝试备选节点...`)
       
-      // 获取该组的所有节点
       const allNodes = await getGroupNodes(groupName)
       console.log(`  ${groupName} 共有 ${allNodes.length} 个节点`)
       
-      // 排除当前节点，取前MAX_EXTRA_TEST个备选
       const candidates = allNodes.filter(n => n !== currentNode).slice(0, MAX_EXTRA_TEST)
       
       for (const candidate of candidates) {
