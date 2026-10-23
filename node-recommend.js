@@ -1,12 +1,6 @@
 // ============================================
-// 节点测速推荐面板 v3.0（Surge原生API版）
-// 功能：
-//   1. 用Surge原生API测试策略组延迟
-//   2. 为每个地区组推荐最快节点
-//   3. 解析每个应用组当前链路
-// 改进：
-//   - 用 /v1/policy_groups/test API，不是逐个HTTP请求
-//   - 更稳定，不会全部超时
+// 节点测速推荐面板 v4.0（修正API参数版）
+// 修正：httpAPI参数顺序为 (path, method, body)
 // ============================================
 
 var SERVER_GROUPS = [
@@ -25,33 +19,13 @@ var APP_GROUPS = [
   "游戏服务", "动漫漫画", "GameBus视频网站", "哔哩哔哩"
 ];
 
-// ---------- HTTP API ----------
-function httpAPI(method, path, body) {
-  return new Promise(function (resolve) {
-    try {
-      $httpAPI(method, path, body || {}, function (result) { resolve(result); });
-    } catch (e) { resolve(null); }
+// ---------- HTTP API（正确参数顺序：path, method, body）----------
+function httpAPI(path, method, body) {
+  return new Promise((resolve) => {
+    $httpAPI(method || "GET", path, body || {}, (result) => {
+      resolve(result);
+    });
   });
-}
-
-// ---------- 触发策略组测速 ----------
-function testGroup(groupName) {
-  return httpAPI("POST", "/v1/policy_groups/test", { group_name: groupName });
-}
-
-// ---------- 获取测速结果 ----------
-function getTestResults() {
-  return httpAPI("GET", "/v1/policy_groups/test_results");
-}
-
-// ---------- 获取策略组当前选择 ----------
-function getSelect(groupName) {
-  return httpAPI("GET", "/v1/policy_groups/select?group_name=" + encodeURIComponent(groupName));
-}
-
-// ---------- 获取所有策略组 ----------
-function getAllGroups() {
-  return httpAPI("GET", "/v1/policy_groups");
 }
 
 // ---------- 主流程 ----------
@@ -82,15 +56,13 @@ function render(data) {
       lines.push("• " + g + " ➟ 无法获取");
     } else if (t.final === "DIRECT") {
       lines.push("• " + g + " ➟ 直连");
-    } else if (t.final === "REJECT") {
-      lines.push("• " + g + " ➟ 拦截");
     } else {
       lines.push("• " + g + " ➟ " + t.final);
     }
   });
 
   var elapsed = ((Date.now() - startTs) / 1000).toFixed(1);
-  var hasResult = Object.keys(groupBest).length > 0;
+  var hasResult = Object.keys(appTrace).length > 0;
   var color = hasResult ? "#34C759" : "#FF9500";
 
   $done({
@@ -106,19 +78,19 @@ setTimeout(function () { render(null); }, 60000);
 
 (async function () {
   // 1. 获取所有策略组
-  var allGroups = await getAllGroups();
-  if (!allGroups || !Array.isArray(allGroups)) return render(null);
+  var allGroups = await httpAPI("/v1/policy_groups");
+  if (!allGroups) return render(null);
 
   // 2. 触发所有地区组测速
   for (var i = 0; i < SERVER_GROUPS.length; i++) {
-    await testGroup(SERVER_GROUPS[i].name);
+    await httpAPI("/v1/policy_groups/test", "POST", { group_name: SERVER_GROUPS[i].name });
   }
 
-  // 3. 等待测速完成（给10秒）
+  // 3. 等待测速完成
   await new Promise(function (r) { setTimeout(r, 10000); });
 
   // 4. 获取测速结果
-  var testResults = await getTestResults();
+  var testResults = await httpAPI("/v1/policy_groups/test_results");
 
   // 5. 解析每个组的最快节点
   var groupBest = {};
@@ -140,11 +112,13 @@ setTimeout(function () { render(null); }, 60000);
   // 6. 获取应用组当前链路
   var appTrace = {};
   for (var j = 0; j < APP_GROUPS.length; j++) {
-    var sel = await getSelect(APP_GROUPS[j]);
+    var sel = await httpAPI("/v1/policy_groups/select?group_name=" + encodeURIComponent(APP_GROUPS[j]));
     if (sel && sel.policy) {
       appTrace[APP_GROUPS[j]] = { final: sel.policy };
     }
   }
 
   render({ groupBest: groupBest, appTrace: appTrace });
-})()["catch"](function () { render(null); });
+})()["catch"](function (e) {
+  render({ error: String(e) });
+});
