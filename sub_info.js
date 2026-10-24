@@ -1,6 +1,8 @@
 // ============================================
-// 自动订阅流量查询脚本 v5
-// 适配当前配置的4个订阅：良心云 / 赔钱 / 快龙 / 一分
+// 自动订阅流量查询脚本 v5.1
+// 适配当前配置的4个订阅：良心云 / 赔钱 / 多宝 / 一分（快龙已更换为多宝）
+// v5.1：内置兜底 DEFAULT_SUBS 同步为当前真实订阅（多宝 xxl.m2-koala.sbs 替换已下线的快龙）；
+//       主逻辑仍以 sensitive=1 明文动态读取为准，故切换订阅会自动识别，内置列表仅在 API 全失败时兜底。
 // v5 关键修复（解决面板显示 "masked: 获取失败"）：
 //   Surge 的 $httpAPI 默认以 sensitive=0 返回配置，会把 policy-path 订阅地址(含token)
 //   脱敏成 "masked"，导致读不到真实订阅。v5 改用 GET v1/profiles/current 并传 sensitive=1
@@ -15,7 +17,7 @@
 var DEFAULT_SUBS = [
   { name: "", url: "https://liangxin.xyz/api/v1/liangxin?OwO=b70caf2736c09389862f6308d6d60ff0" },
   { name: "", url: "https://dasho.xn--cp3a08l.com/api/v1/pq/d48f7e0117d75b38f55c2f3be4e81162" },
-  { name: "", url: "https://klgsd.cc/api/v1/client/subscribe?token=dfde686e1c6f76501acd13e4288776a1" },
+  { name: "", url: "https://xxl.m2-koala.sbs/s/97078ccdbfa44238b061078c2f2f35fc" },
   { name: "", url: "https://login.yfjc.xyz/api/v1/client/subscribe?token=5b38f7bed2857c419b4334a1a8a6cca0" }
 ];
 
