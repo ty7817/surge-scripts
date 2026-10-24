@@ -1,14 +1,15 @@
 // ============================================
-// 自动订阅流量查询脚本 v4
+// 自动订阅流量查询脚本 v5
 // 适配当前配置的4个订阅：良心云 / 赔钱 / 快龙 / 一分
-// 修复要点（均基于对4个订阅的真实抓包验证）：
-//   1. 订阅查询强制直连(DIRECT)优先——实测走代理有失败/丢头，直连4个全部200返回流量头；
-//      直连失败再回退系统默认路由（双通道兜底）
-//   2. UA 固定 clash.meta 优先——实测 clash.meta/clash/QuantumultX 返回头，surge UA 四个全不返回，
-//      clash.meta 对4个机场全兼容
-//   3. 用内置 $httpAPI 读取当前配置(v1/profiles/current)自动发现 policy-path 订阅，
-//      失败回退内置 DEFAULT_SUBS（与主配置4个订阅保持一致）
-//   4. 单请求8s超时、28s整体兜底、空 expire 兼容(显示"未知")、中文订阅名解码
+// v5 关键修复（解决面板显示 "masked: 获取失败"）：
+//   Surge 的 $httpAPI 默认以 sensitive=0 返回配置，会把 policy-path 订阅地址(含token)
+//   脱敏成 "masked"，导致读不到真实订阅。v5 改用 GET v1/profiles/current 并传 sensitive=1
+//   取【未脱敏明文】动态解析当前订阅——你在配置里增删/切换任何订阅都能实时识别并列出；
+//   显式过滤 masked 占位，明文读取失败才逐级回退，最终回退内置 DEFAULT_SUBS。
+// 其余（均经真实抓包验证）：
+//   1. 订阅查询强制直连(DIRECT)优先，直连失败再回退系统默认路由（双通道兜底）
+//   2. UA 固定 clash.meta 优先（实测 clash.meta/clash/QuantumultX 返回头，surge 全不返回）
+//   3. 单请求8s超时、28s整体兜底、空 expire 兼容(显示"未知")、中文订阅名解码
 // ============================================
 
 var DEFAULT_SUBS = [
@@ -106,32 +107,52 @@ function detectName(sub, response, body) {
   }
 }
 
-// 用内置 $httpAPI 读取当前配置，正则提取 policy-path 订阅链接
-function discoverSubs(callback) {
+// 调用内置 $httpAPI 读取当前配置文本
+// sensitive=1 取未脱敏明文（默认 0 会把 policy-path 订阅地址脱敏成 masked）
+function fetchProfile(sensitive, callback) {
   try {
-    $httpAPI("GET", "v1/profiles/current", {}, function (res) {
+    var body = sensitive ? { sensitive: 1 } : {};
+    $httpAPI("GET", "v1/profiles/current", body, function (res) {
       var text = null;
       if (typeof res === "string") text = res;
       else if (res && typeof res === "object") {
         text = res.profile || res.content || res.text || res.data || null;
         if (!text) {
-          // 某些版本直接把配置放在某字符串字段里
           for (var k in res) { if (typeof res[k] === "string" && res[k].indexOf("policy-path") >= 0) { text = res[k]; break; } }
         }
       }
-      var subs = [];
-      if (text) {
-        var regex = /policy-path=([^\s,]+)/g, m, seen = {};
-        while ((m = regex.exec(text)) !== null) {
-          var u = m[1].trim().replace(/^['"]|['"]$/g, "");
-          if (u.indexOf("http") === 0 && !seen[u]) { seen[u] = true; subs.push({ name: "", url: u }); }
-        }
-      }
-      callback(subs.length ? subs : DEFAULT_SUBS);
+      callback(text);
     });
   } catch (e) {
-    callback(DEFAULT_SUBS);
+    callback(null);
   }
+}
+
+// 从配置文本提取真实订阅地址；masked 占位 / 非 http 一律丢弃
+function extractSubs(text) {
+  var subs = [], seen = {};
+  if (!text) return subs;
+  var regex = /policy-path=([^\s,]+)/g, m;
+  while ((m = regex.exec(text)) !== null) {
+    var u = m[1].trim().replace(/^['"]|['"]$/g, "");
+    if (u.indexOf("http") === 0 && u.toLowerCase() !== "masked" && !seen[u]) {
+      seen[u] = true;
+      subs.push({ name: "", url: u });
+    }
+  }
+  return subs;
+}
+
+// 动态发现当前订阅：明文(sensitive=1)优先 → 脱敏默认再试 → 内置兜底
+function discoverSubs(callback) {
+  fetchProfile(true, function (plain) {
+    var subs = extractSubs(plain);
+    if (subs.length) return callback(subs);
+    fetchProfile(false, function (maskedText) {
+      var fallback = extractSubs(maskedText);
+      callback(fallback.length ? fallback : DEFAULT_SUBS);
+    });
+  });
 }
 
 // 单次请求（可指定直连/默认、UA）
