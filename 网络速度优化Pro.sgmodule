@@ -1,0 +1,30 @@
+#!name=网络速度优化Pro
+#!desc=全面优化网络速度：DNS优化、QUIC屏蔽、TCP加速、GeoIP更新、测试超时优化
+#!arguments=DNS优化:true,QUIC全局屏蔽:true,TCP加速:true,GeoIP自动更新:true,测试超时优化:true
+#!arguments-desc=DNS优化：优化DNS解析速度；QUIC全局屏蔽：所有UDP443拦截强制TCP；TCP加速：开启TCP快速打开；GeoIP自动更新：自动更新IP数据库；测试超时优化：缩短节点测试时间
+
+[General]
+{{#测试超时优化}}
+# 缩短节点测试超时，更快识别可用节点
+test-timeout = 3
+{{/测试超时优化}}
+
+{{#GeoIP自动更新}}
+# 开启GeoIP数据库自动更新
+disable-geoip-db-auto-update = false
+{{/GeoIP自动更新}}
+
+{{#QUIC全局屏蔽}}
+# 全局屏蔽QUIC，强制TCP
+block-quic = true
+{{/QUIC全局屏蔽}}
+
+{{#TCP加速}}
+# 开启TCP快速打开
+tcp-fast-open = true
+{{/TCP加速}}
+
+{{#DNS优化}}
+# 优化DNS解析
+predict-alternative-dns-answering = true
+{{/DNS优化}}
