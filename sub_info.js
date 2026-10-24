@@ -1,18 +1,20 @@
 // ============================================
-// 自动订阅流量查询脚本 v3
-// 修复要点（基于对4个订阅的真实抓包验证）：
-//   1. 订阅查询强制直连(DIRECT)优先——机场流量接口走代理会被风控/连不上，
-//      直连实测4个订阅全部可返回流量头；直连失败再回退系统默认路由
-//   2. UA 固定 clash.meta 优先——实测只有它对4个机场都返回 subscription-userinfo
-//   3. 用内置 $httpAPI 读取当前配置(v1/profiles/current)自动发现订阅，
-//      替代旧版错误的 /v1/configuration + Bearer；失败回退内置订阅
-//   4. 单请求超时、整体兜底、空 expire 兼容、中文订阅名解码
+// 自动订阅流量查询脚本 v4
+// 适配当前配置的4个订阅：良心云 / 赔钱 / 快龙 / 一分
+// 修复要点（均基于对4个订阅的真实抓包验证）：
+//   1. 订阅查询强制直连(DIRECT)优先——实测走代理有失败/丢头，直连4个全部200返回流量头；
+//      直连失败再回退系统默认路由（双通道兜底）
+//   2. UA 固定 clash.meta 优先——实测 clash.meta/clash/QuantumultX 返回头，surge UA 四个全不返回，
+//      clash.meta 对4个机场全兼容
+//   3. 用内置 $httpAPI 读取当前配置(v1/profiles/current)自动发现 policy-path 订阅，
+//      失败回退内置 DEFAULT_SUBS（与主配置4个订阅保持一致）
+//   4. 单请求8s超时、28s整体兜底、空 expire 兼容(显示"未知")、中文订阅名解码
 // ============================================
 
 var DEFAULT_SUBS = [
   { name: "", url: "https://liangxin.xyz/api/v1/liangxin?OwO=b70caf2736c09389862f6308d6d60ff0" },
   { name: "", url: "https://dasho.xn--cp3a08l.com/api/v1/pq/d48f7e0117d75b38f55c2f3be4e81162" },
-  { name: "", url: "https://scyydsbgw.xm-pass.one/feed/yhDhUOC8AYK8VIVCHgKZoKVSPBSeh1SY" },
+  { name: "", url: "https://klgsd.cc/api/v1/client/subscribe?token=dfde686e1c6f76501acd13e4288776a1" },
   { name: "", url: "https://login.yfjc.xyz/api/v1/client/subscribe?token=5b38f7bed2857c419b4334a1a8a6cca0" }
 ];
 
