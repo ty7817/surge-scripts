@@ -1,0 +1,51 @@
+#!name=Telegram优化Pro
+#!desc=Telegram DC IP直连优化，强制TCP屏蔽QUIC，CDN加速，提升下载速度和连接稳定性
+#!arguments=屏蔽QUIC:true,DCIP直连:true,CDN优化:true
+#!arguments-desc=屏蔽QUIC：强制Telegram走TCP，避免UDP443被限速；DCIP直连：Telegram DC IP段走电报信息策略组；CDN优化：Telegram CDN域名优化加载速度
+
+[Rule]
+{{#DCIP直连}}
+# ===== Telegram DC IP段（最新） =====
+IP-CIDR,91.108.0.0/16,电报信息,no-resolve
+IP-CIDR,149.154.160.0/20,电报信息,no-resolve
+IP-CIDR,5.28.192.0/18,电报信息,no-resolve
+IP-CIDR,109.239.140.0/24,电报信息,no-resolve
+IP-ASN,44907,电报信息,no-resolve
+IP-ASN,211157,电报信息,no-resolve
+
+# ===== Telegram 域名 =====
+DOMAIN-SUFFIX,telegram.org,电报信息
+DOMAIN-SUFFIX,t.me,电报信息
+DOMAIN-SUFFIX,tdesktop.com,电报信息
+DOMAIN-SUFFIX,telegra.ph,电报信息
+DOMAIN-SUFFIX,telegram.dog,电报信息
+DOMAIN-SUFFIX,telegram.me,电报信息
+DOMAIN-SUFFIX,telegram.space,电报信息
+DOMAIN-SUFFIX,telesco.pe,电报信息
+DOMAIN-SUFFIX,graph.org,电报信息
+DOMAIN-SUFFIX,stel.com,电报信息
+DOMAIN-SUFFIX,comments.app,电报信息
+DOMAIN-SUFFIX,quiz.directory,电报信息
+{{/DCIP直连}}
+
+{{#CDN优化}}
+# ===== Telegram CDN 域名优化 =====
+DOMAIN-SUFFIX,cdn-telegram.org,电报信息
+DOMAIN-SUFFIX,telegram-cdn.org,电报信息
+DOMAIN-SUFFIX,telegramdownload.com,电报信息
+DOMAIN-SUFFIX,usercontent.dev,电报信息
+DOMAIN-SUFFIX,mbrx.app,电报信息
+DOMAIN-SUFFIX,telega.one,电报信息
+DOMAIN-SUFFIX,tg.dev,电报信息
+DOMAIN-SUFFIX,tx.me,电报信息
+{{/CDN优化}}
+
+{{#屏蔽QUIC}}
+# ===== 屏蔽QUIC，强制TCP =====
+AND,((DOMAIN-SUFFIX,telegram.org),(PROTOCOL,UDP)),REJECT-NO-DROP
+AND,((DOMAIN-SUFFIX,t.me),(PROTOCOL,UDP)),REJECT-NO-DROP
+AND,((DOMAIN-SUFFIX,telegram-cdn.org),(PROTOCOL,UDP)),REJECT-NO-DROP
+AND,((IP-CIDR,91.108.0.0/16),(PROTOCOL,UDP)),REJECT-NO-DROP
+AND,((IP-CIDR,149.154.160.0/20),(PROTOCOL,UDP)),REJECT-NO-DROP
+AND,((IP-CIDR,5.28.192.0/18),(PROTOCOL,UDP)),REJECT-NO-DROP
+{{/屏蔽QUIC}}
