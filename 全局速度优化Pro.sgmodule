@@ -1,7 +1,7 @@
-#!name=全局速度优化Pro v5
-#!desc=全面优化网络速度v5：18大模块覆盖所有常用服务
-#!arguments=基础优化:true,DNS优化:true,Telegram优化:true,Twitter优化:true,YouTube优化:true,Netflix优化:true,TikTok优化:true,游戏优化:true,谷歌优化:true,微软优化:true,B站优化:true,动漫优化:true,Emby优化:true,Discord优化:true,Spotify优化:true,GitHub优化:true,苹果优化:true,RealIP优化:true
-#!arguments-desc=基础优化：DNS/QUIC/TCP/GeoIP/测试超时；DNS优化：DNS解析加速；Telegram优化：电报播放浏览加速；Twitter优化：推特播放浏览加速；YouTube优化：油管视频加速；Netflix优化：奈飞播放加速；TikTok优化：短视频加速；游戏优化：游戏加速；谷歌优化：谷歌服务加速；微软优化：微软服务加速；B站优化：哔哩哔哩加速；动漫优化：动漫漫画加速；Emby优化：Emby影院加速；Discord优化：Discord加速；Spotify优化：Spotify音乐加速；GitHub优化：GitHub加速；苹果优化：苹果服务加速；RealIP优化：RealIP补充优化
+#!name=全局速度优化Pro v6
+#!desc=全面优化网络速度v6：20大模块终极版
+#!arguments=基础优化:true,DNS优化:true,Telegram优化:true,Twitter优化:true,YouTube优化:true,Netflix优化:true,TikTok优化:true,游戏优化:true,谷歌优化:true,微软优化:true,B站优化:true,动漫优化:true,Emby优化:true,Discord优化:true,Spotify优化:true,GitHub优化:true,苹果优化:true,RealIP优化:true,通用优化:true,CDN优化:true
+#!arguments-desc=基础优化：DNS/QUIC/TCP/GeoIP/测试超时；DNS优化：DNS解析加速；Telegram优化：电报播放浏览加速；Twitter优化：推特播放浏览加速；YouTube优化：油管视频加速；Netflix优化：奈飞播放加速；TikTok优化：短视频加速；游戏优化：游戏加速；谷歌优化：谷歌服务加速；微软优化：微软服务加速；B站优化：哔哩哔哩加速；动漫优化：动漫漫画加速；Emby优化：Emby影院加速；Discord优化：Discord加速；Spotify优化：Spotify音乐加速；GitHub优化：GitHub加速；苹果优化：苹果服务加速；RealIP优化：RealIP补充优化；通用优化：通用速度优化；CDN优化：CDN域名优化
 
 [General]
 {{#基础优化}}
@@ -18,6 +18,13 @@ udp-policy-not-supported-behaviour = reject
 # ===== RealIP补充优化 =====
 always-real-ip = *.lan, *.direct, cable.auth.com, *.msftconnecttest.com, *.msftncsi.com, network-test.debian.org, detectportal.firefox.com, resolver1.opendns.com, *.srv.nintendo.net, *.stun.playstation.net, xbox.*.microsoft.com, *.xboxlive.com, stun.*, global.turn.twilio.com, global.stun.twilio.com, app.yinxiang.com, injections.adguard.org, local.adguard.org, localhost.*.qq.com, localhost.*.weixin.qq.com, *.logon.battlenet.com.cn, *.logon.battle.net, *.blzstatic.cn, music.163.com, *.music.163.com, *.126.net, musicapi.taihe.com, music.taihe.com, songsearch.kugou.com, trackercdn.kugou.com, *.kuwo.cn, api-jooxtt.sanook.com, api.joox.com, joox.com, y.qq.com, *.y.qq.com, streamoc.music.tc.qq.com, mobileoc.music.tc.qq.com, isure.stream.qqmusic.qq.com, dl.stream.qqmusic.qq.com, aqqmusic.tc.qq.com, amobile.music.tc.qq.com, *.xiami.com, *.music.migu.cn, music.migu.cn, proxy.golang.org, *.mcdn.bilivideo.cn, *.cmpassport.com, id6.me, open.e.189.cn, opencloud.wostore.cn, id.mail.wo.cn, mdn.open.wo.cn, hmrz.wo.cn, nishub1.10010.com, enrichgw.10010.com, *.wosms.cn, *.jegotrip.com.cn, *.icitymobile.mobi, *.pingan.com.cn, *.cmbchina.com, *.10099.com.cn, *.microdone.cn, pool.ntp.org, *.pool.ntp.org, ntp.*.com, time.*.com, ntp?.*.com, time?.*.com, time.*.gov, time.*.edu.cn, *.ntp.org.cn, PDC._msDCS.*.*, DC._msDCS.*.*, GC._msDCS.*.*, *.srv.nintendo.net, *.stun.playstation.net, xbox.*.microsoft.com, *.xboxlive.com, *.battlenet.com.cn, *.battlenet.com, *.blzstatic.cn, *.battle.net, *.turn.twilio.com, *.stun.twilio.com, stun.syncthing.net, stun.*, easy-login.10099.com.cn, *-update.xoyocdn.com, id6.me, open.e.189.cn
 {{/RealIP优化}}
+
+{{#通用优化}}
+# ===== 通用速度优化 =====
+exclude-simple-hostnames = true
+use-local-host-item-for-proxy = true
+read-etc-hosts = true
+{{/通用优化}}
 
 [Host]
 {{#DNS优化}}
@@ -253,3 +260,18 @@ DOMAIN-SUFFIX,itunes.com,苹果服务
 DOMAIN-SUFFIX,appstore.com,苹果服务
 DOMAIN-SUFFIX,cdn-apple.com,苹果服务
 {{/苹果优化}}
+
+{{#CDN优化}}
+# ===== CDN域名优化 =====
+# Cloudflare
+DOMAIN-SUFFIX,cloudflare.com,主节点
+DOMAIN-SUFFIX,cloudflare.net,主节点
+
+# Akamai
+DOMAIN-SUFFIX,akamai.net,主节点
+DOMAIN-SUFFIX,akamaiedge.net,主节点
+
+# Fastly
+DOMAIN-SUFFIX,fastly.net,主节点
+DOMAIN-SUFFIX,fastlylb.net,主节点
+{{/CDN优化}}
