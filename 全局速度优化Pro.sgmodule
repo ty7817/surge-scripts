@@ -1,7 +1,7 @@
-#!name=全局速度优化Pro
-#!desc=全面优化网络速度：DNS、QUIC、TCP、GeoIP、Telegram/Twitter专项优化
-#!arguments=基础优化:true,Telegram优化:true,Twitter优化:true,策略组优化:true
-#!arguments-desc=基础优化：DNS/QUIC/TCP/GeoIP/测试超时；Telegram优化：电报播放浏览加速；Twitter优化：推特播放浏览加速；策略组优化：优化所有策略组配置
+#!name=全局速度优化Pro v2
+#!desc=全面优化网络速度v2：基础+Telegram+Twitter+YouTube+策略组
+#!arguments=基础优化:true,Telegram优化:true,Twitter优化:true,YouTube优化:true,策略组优化:true
+#!arguments-desc=基础优化：DNS/QUIC/TCP/GeoIP/测试超时；Telegram优化：电报播放浏览加速；Twitter优化：推特播放浏览加速；YouTube优化：油管视频加速；策略组优化：优化所有策略组配置
 
 [General]
 {{#基础优化}}
@@ -51,6 +51,8 @@ DOMAIN,pbs.twimg.com,推特X
 DOMAIN,abs.twimg.com,推特X
 DOMAIN,ton.twimg.com,推特X
 DOMAIN,video.twimg.com,推特X
+DOMAIN,pbs-1.twimg.com,推特X
+DOMAIN,cdn.syndication.twimg.com,推特X
 
 # Twitter IP段优化
 IP-CIDR,104.244.42.0/24,推特X,no-resolve
@@ -59,14 +61,32 @@ IP-CIDR,199.16.156.0/22,推特X,no-resolve
 IP-CIDR,199.59.148.0/22,推特X,no-resolve
 {{/Twitter优化}}
 
-{{#策略组优化}}
-# ===== 策略组优化规则 =====
-# 油管视频走最优节点
+{{#YouTube优化}}
+# ===== YouTube 播放加速 =====
+# YouTube CDN域名优化（视频加载更快）
 DOMAIN-SUFFIX,youtube.com,油管视频
 DOMAIN-SUFFIX,youtu.be,油管视频
 DOMAIN-SUFFIX,googlevideo.com,油管视频
+DOMAIN-SUFFIX,youtube-nocookie.com,油管视频
 
+# YouTube视频CDN精确匹配
+DOMAIN,manifest.googlevideo.com,油管视频
+DOMAIN,redirector.googlevideo.com,油管视频
+
+# YouTube IP段优化
+IP-CIDR,173.194.0.0/16,油管视频,no-resolve
+IP-CIDR,203.208.0.0/16,油管视频,no-resolve
+IP-CIDR,216.58.192.0/19,油管视频,no-resolve
+{{/YouTube优化}}
+
+{{#策略组优化}}
+# ===== 策略组优化规则 =====
 # 奈飞走最优节点
 DOMAIN-SUFFIX,netflix.com,奈飞视频
 DOMAIN-SUFFIX,netflix.net,奈飞视频
+DOMAIN-SUFFIX,nflxvideo.net,奈飞视频
+
+# TikTok走最优节点
+DOMAIN-SUFFIX,tiktok.com,TikTok短视频
+DOMAIN-SUFFIX,byteoversea.com,TikTok短视频
 {{/策略组优化}}
