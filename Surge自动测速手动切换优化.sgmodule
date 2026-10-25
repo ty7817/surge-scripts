@@ -1,0 +1,37 @@
+#!name=Surge自动测速手动切换优化
+#!desc=全局配置优化：自动测速+手动切换模式
+#!arguments=General优化:true,策略组优化:true,DNS优化:true
+
+[General]
+{{#General优化}}
+# ===== 基础速度优化 =====
+test-timeout = 3
+block-quic = true
+predict-alternative-dns-answering = true
+disable-geoip-db-auto-update = false
+udp-policy-not-supported-behaviour = reject
+{{/General优化}}
+
+{{#DNS优化}}
+# ===== DNS优化 =====
+exclude-simple-hostnames = true
+use-local-host-item-for-proxy = true
+read-etc-hosts = true
+{{/DNS优化}}
+
+[Host]
+{{#DNS优化}}
+# ===== DNS解析优化 =====
+*.taobao.com = server:223.5.5.5
+*.tmall.com = server:223.5.5.5
+*.alicdn.com = server:223.5.5.5
+*.aliyun.com = server:223.5.5.5
+*.qq.com = server:119.29.29.29
+*.tencent.com = server:119.29.29.29
+*.weixin.com = server:119.29.29.29
+*.jd.com = server:119.29.29.29
+*.bilibili.com = server:119.29.29.29
+hdslb.com = server:119.29.29.29
+*.mi.com = server:223.5.5.5
+*.xiaomi.com = server:223.5.5.5
+{{/DNS优化}}
