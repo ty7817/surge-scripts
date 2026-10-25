@@ -1,7 +1,7 @@
-#!name=全局速度优化Pro v2
-#!desc=全面优化网络速度v2：基础+Telegram+Twitter+YouTube+策略组
-#!arguments=基础优化:true,Telegram优化:true,Twitter优化:true,YouTube优化:true,策略组优化:true
-#!arguments-desc=基础优化：DNS/QUIC/TCP/GeoIP/测试超时；Telegram优化：电报播放浏览加速；Twitter优化：推特播放浏览加速；YouTube优化：油管视频加速；策略组优化：优化所有策略组配置
+#!name=全局速度优化Pro v3
+#!desc=全面优化网络速度v3：基础+DNS+Telegram+Twitter+YouTube+Netflix+TikTok+游戏+谷歌+微软
+#!arguments=基础优化:true,DNS优化:true,Telegram优化:true,Twitter优化:true,YouTube优化:true,Netflix优化:true,TikTok优化:true,游戏优化:true,谷歌优化:true,微软优化:true
+#!arguments-desc=基础优化：DNS/QUIC/TCP/GeoIP/测试超时；DNS优化：DNS解析加速；Telegram优化：电报播放浏览加速；Twitter优化：推特播放浏览加速；YouTube优化：油管视频加速；Netflix优化：奈飞播放加速；TikTok优化：短视频加速；游戏优化：游戏加速；谷歌优化：谷歌服务加速；微软优化：微软服务加速
 
 [General]
 {{#基础优化}}
@@ -11,7 +11,32 @@ disable-geoip-db-auto-update = false
 block-quic = true
 tcp-fast-open = true
 predict-alternative-dns-answering = true
+udp-policy-not-supported-behaviour = reject
 {{/基础优化}}
+
+[Host]
+{{#DNS优化}}
+# ===== DNS解析优化 =====
+# 国内域名用国内DNS
+*.taobao.com = server:223.5.5.5
+*.tmall.com = server:223.5.5.5
+*.alicdn.com = server:223.5.5.5
+*.aliyun.com = server:223.5.5.5
+*.qq.com = server:119.29.29.29
+*.tencent.com = server:119.29.29.29
+*.weixin.com = server:119.29.29.29
+*.jd.com = server:119.29.29.29
+*.bilibili.com = server:119.29.29.29
+hdslb.com = server:119.29.29.29
+*.mi.com = server:223.5.5.5
+*.xiaomi.com = server:223.5.5.5
+
+# 国外域名用加密DNS
+google.com = server:https://doh.pub/dns-query
+youtube.com = server:https://doh.pub/dns-query
+twitter.com = server:https://doh.pub/dns-query
+telegram.org = server:https://doh.pub/dns-query
+{{/DNS优化}}
 
 [Rule]
 {{#Telegram优化}}
@@ -30,6 +55,8 @@ DOMAIN-SUFFIX,telegram-cdn.org,电报信息
 DOMAIN-SUFFIX,telegramdownload.com,电报信息
 DOMAIN-SUFFIX,usercontent.dev,电报信息
 DOMAIN-SUFFIX,telesco.pe,电报信息
+DOMAIN-SUFFIX,comments.app,电报信息
+DOMAIN-SUFFIX,graph.org,电报信息
 
 # 屏蔽Telegram QUIC，强制TCP
 AND,((DOMAIN-SUFFIX,telegram.org), (PROTOCOL,UDP)),REJECT-NO-DROP
@@ -79,14 +106,75 @@ IP-CIDR,203.208.0.0/16,油管视频,no-resolve
 IP-CIDR,216.58.192.0/19,油管视频,no-resolve
 {{/YouTube优化}}
 
-{{#策略组优化}}
-# ===== 策略组优化规则 =====
-# 奈飞走最优节点
+{{#Netflix优化}}
+# ===== Netflix 播放加速 =====
+# Netflix CDN域名优化
 DOMAIN-SUFFIX,netflix.com,奈飞视频
 DOMAIN-SUFFIX,netflix.net,奈飞视频
 DOMAIN-SUFFIX,nflxvideo.net,奈飞视频
+DOMAIN-SUFFIX,nflximg.net,奈飞视频
+DOMAIN-SUFFIX,nflximg.com,奈飞视频
+DOMAIN-SUFFIX,nflxext.com,奈飞视频
+DOMAIN-SUFFIX,nflxso.net,奈飞视频
 
-# TikTok走最优节点
+# Netflix IP段优化
+IP-CIDR,3.12.0.0/14,奈飞视频,no-resolve
+IP-CIDR,18.184.0.0/15,奈飞视频,no-resolve
+IP-CIDR,52.200.0.0/14,奈飞视频,no-resolve
+{{/Netflix优化}}
+
+{{#TikTok优化}}
+# ===== TikTok 短视频加速 =====
+# TikTok CDN域名优化
 DOMAIN-SUFFIX,tiktok.com,TikTok短视频
 DOMAIN-SUFFIX,byteoversea.com,TikTok短视频
-{{/策略组优化}}
+DOMAIN-SUFFIX,tiktokcdn.com,TikTok短视频
+DOMAIN-SUFFIX,tiktokd.org,TikTok短视频
+DOMAIN-SUFFIX,musical.ly,TikTok短视频
+
+# TikTok视频CDN精确匹配
+DOMAIN,api16-normal-c-useast1a.tiktokv.com,TikTok短视频
+DOMAIN,api16-normal-useast1a.tiktokv.com,TikTok短视频
+{{/TikTok优化}}
+
+{{#游戏优化}}
+# ===== 游戏加速优化 =====
+# Steam
+DOMAIN-SUFFIX,steampowered.com,游戏服务
+DOMAIN-SUFFIX,steamcommunity.com,游戏服务
+DOMAIN-SUFFIX,steamstatic.com,游戏服务
+
+# Epic
+DOMAIN-SUFFIX,epicgames.com,游戏服务
+DOMAIN-SUFFIX,unrealengine.com,游戏服务
+
+# PlayStation
+DOMAIN-SUFFIX,playstation.net,游戏服务
+DOMAIN-SUFFIX,playstation.com,游戏服务
+
+# Xbox
+DOMAIN-SUFFIX,xboxlive.com,游戏服务
+DOMAIN-SUFFIX,xbox.com,游戏服务
+{{/游戏优化}}
+
+{{#谷歌优化}}
+# ===== 谷歌服务加速 =====
+DOMAIN-SUFFIX,google.com,谷歌服务
+DOMAIN-SUFFIX,google.com.hk,谷歌服务
+DOMAIN-SUFFIX,gstatic.com,谷歌服务
+DOMAIN-SUFFIX,googleapis.com,谷歌服务
+DOMAIN-SUFFIX,googleusercontent.com,谷歌服务
+DOMAIN-SUFFIX,gmail.com,谷歌服务
+DOMAIN-SUFFIX,googlemail.com,谷歌服务
+{{/谷歌优化}}
+
+{{#微软优化}}
+# ===== 微软服务加速 =====
+DOMAIN-SUFFIX,microsoft.com,微软服务
+DOMAIN-SUFFIX,windows.com,微软服务
+DOMAIN-SUFFIX,office.com,微软服务
+DOMAIN-SUFFIX,office365.com,微软服务
+DOMAIN-SUFFIX,live.com,微软服务
+DOMAIN-SUFFIX,outlook.com,微软服务
+DOMAIN-SUFFIX,skype.com,微软服务
+{{/微软优化}}
