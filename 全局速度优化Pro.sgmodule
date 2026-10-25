@@ -1,7 +1,7 @@
-#!name=全局速度优化Pro v3
-#!desc=全面优化网络速度v3：基础+DNS+Telegram+Twitter+YouTube+Netflix+TikTok+游戏+谷歌+微软
-#!arguments=基础优化:true,DNS优化:true,Telegram优化:true,Twitter优化:true,YouTube优化:true,Netflix优化:true,TikTok优化:true,游戏优化:true,谷歌优化:true,微软优化:true
-#!arguments-desc=基础优化：DNS/QUIC/TCP/GeoIP/测试超时；DNS优化：DNS解析加速；Telegram优化：电报播放浏览加速；Twitter优化：推特播放浏览加速；YouTube优化：油管视频加速；Netflix优化：奈飞播放加速；TikTok优化：短视频加速；游戏优化：游戏加速；谷歌优化：谷歌服务加速；微软优化：微软服务加速
+#!name=全局速度优化Pro v4
+#!desc=全面优化网络速度v4：15大模块覆盖所有常用服务
+#!arguments=基础优化:true,DNS优化:true,Telegram优化:true,Twitter优化:true,YouTube优化:true,Netflix优化:true,TikTok优化:true,游戏优化:true,谷歌优化:true,微软优化:true,B站优化:true,动漫优化:true,Emby优化:true,Discord优化:true,Spotify优化:true
+#!arguments-desc=基础优化：DNS/QUIC/TCP/GeoIP/测试超时；DNS优化：DNS解析加速；Telegram优化：电报播放浏览加速；Twitter优化：推特播放浏览加速；YouTube优化：油管视频加速；Netflix优化：奈飞播放加速；TikTok优化：短视频加速；游戏优化：游戏加速；谷歌优化：谷歌服务加速；微软优化：微软服务加速；B站优化：哔哩哔哩加速；动漫优化：动漫漫画加速；Emby优化：Emby影院加速；Discord优化：Discord加速；Spotify优化：Spotify音乐加速
 
 [General]
 {{#基础优化}}
@@ -178,3 +178,51 @@ DOMAIN-SUFFIX,live.com,微软服务
 DOMAIN-SUFFIX,outlook.com,微软服务
 DOMAIN-SUFFIX,skype.com,微软服务
 {{/微软优化}}
+
+{{#B站优化}}
+# ===== 哔哩哔哩加速 =====
+DOMAIN-SUFFIX,bilibili.com,哔哩哔哩
+DOMAIN-SUFFIX,hdslb.com,哔哩哔哩
+DOMAIN-SUFFIX,biliapi.net,哔哩哔哩
+DOMAIN-SUFFIX,biliapi.com,哔哩哔哩
+DOMAIN-SUFFIX,bilivideo.com,哔哩哔哩
+DOMAIN-SUFFIX,bilivideo.cn,哔哩哔哩
+DOMAIN-SUFFIX,acgvideo.com,哔哩哔哩
+{{/B站优化}}
+
+{{#动漫优化}}
+# ===== 动漫漫画加速 =====
+DOMAIN-SUFFIX,ani.gamer.com.tw,动漫漫画
+DOMAIN-SUFFIX,bahamut.com.tw,动漫漫画
+DOMAIN-SUFFIX,crunchyroll.com,动漫漫画
+DOMAIN-SUFFIX,iqiyi.com,动漫漫画
+DOMAIN-SUFFIX,mgtv.com,动漫漫画
+DOMAIN-SUFFIX,tencentvideo.com,动漫漫画
+{{/动漫优化}}
+
+{{#Emby优化}}
+# ===== Emby影院加速 =====
+DOMAIN-SUFFIX,emby.media,Emby影院
+DOMAIN-SUFFIX,emby.theater,Emby影院
+DOMAIN-SUFFIX,mb3.dev,Emby影院
+DOMAIN-SUFFIX,jellyfin.media,Emby影院
+DOMAIN-SUFFIX,jellyfin.org,Emby影院
+{{/Emby优化}}
+
+{{#Discord优化}}
+# ===== Discord加速 =====
+DOMAIN-SUFFIX,discord.com,游戏服务
+DOMAIN-SUFFIX,discordapp.com,游戏服务
+DOMAIN-SUFFIX,discord.gg,游戏服务
+DOMAIN-SUFFIX,discordapp.net,游戏服务
+DOMAIN-SUFFIX,discordapp.io,游戏服务
+{{/Discord优化}}
+
+{{#Spotify优化}}
+# ===== Spotify音乐加速 =====
+DOMAIN-SUFFIX,spotify.com,全球媒体
+DOMAIN-SUFFIX,spotifycdn.com,全球媒体
+DOMAIN-SUFFIX,scdn.co,全球媒体
+DOMAIN-SUFFIX,spotify.design,全球媒体
+DOMAIN-SUFFIX,spotify.pw,全球媒体
+{{/Spotify优化}}
