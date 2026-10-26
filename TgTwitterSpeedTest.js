@@ -1,20 +1,26 @@
 /**
- * Telegram/Twitter 节点测速排名脚本
- * 在Surge面板显示各节点到 t.me / x.com 的延迟，自动推荐最优
- * 作者: ty7817
- * 版本: v1.0
+ * Telegram/Twitter 节点测速排名脚本 v1.1
+ * 修复：添加 Surge API Basic Auth 认证
  */
 
 const SURGE_API = 'http://127.0.0.1:6171';
+const API_USER = 'ty.20040120';
 const TEST_TG_URL = 'https://t.me';
 const TEST_X_URL = 'https://x.com';
 const TIMEOUT = 5000;
 const CONCURRENCY = 6;
 const TOP_N = 5;
 
+// Basic Auth header
+const authHeader = 'Basic ' + $text.base64Encode(API_USER + ':');
+
 function fetchPolicies() {
   return new Promise((resolve) => {
-    $httpClient.get({ url: `${SURGE_API}/v1/policies`, timeout: 3000 }, (error, resp, data) => {
+    $httpClient.get({
+      url: `${SURGE_API}/v1/policies`,
+      headers: { 'Authorization': authHeader },
+      timeout: 3000
+    }, (error, resp, data) => {
       if (error) return resolve([]);
       try {
         const json = JSON.parse(data);
@@ -78,30 +84,37 @@ function pickEmoji(ms) {
   try {
     const policies = await fetchPolicies();
     
-    // 获取所有实际节点（排除策略组）
-    const allNodes = policies
-      .filter(p => !['Select', 'Smart', 'URLTest', 'Fallback', 'LoadBalance', 'Relay'].includes(p.type))
-      .map(p => p.name);
-    
-    if (allNodes.length === 0) {
+    if (policies.length === 0) {
       $done({
-        title: '📡 TG/X节点测速',
-        content: '未获取到节点列表\n请检查Surge API是否开启',
+        title: '🚀 TG/X节点测速',
+        content: 'API认证失败\n请检查http-api配置',
         style: 'warning'
       });
       return;
     }
     
-    // 限制测试节点数量
+    // 过滤出实际节点（排除策略组）
+    const allNodes = policies
+      .filter(p => !['Select', 'Smart', 'URLTest', 'Fallback', 'LoadBalance', 'Relay', 'SSID'].includes(p.type))
+      .map(p => p.name);
+    
+    if (allNodes.length === 0) {
+      $done({
+        title: '🚀 TG/X节点测速',
+        content: '未获取到节点\n请先更新订阅',
+        style: 'warning'
+      });
+      return;
+    }
+    
+    // 限制测试数量
     const testNodes = allNodes.slice(0, 30);
     
-    // 并行测试 t.me 和 x.com
     const [tgResults, xResults] = await Promise.all([
       batchTest(testNodes, TEST_TG_URL),
       batchTest(testNodes, TEST_X_URL)
     ]);
     
-    // 合并结果并排序
     const merged = testNodes.map(node => {
       const tg = tgResults.get(node) || { ms: 9999, ok: false };
       const x = xResults.get(node) || { ms: 9999, ok: false };
@@ -116,10 +129,10 @@ function pickEmoji(ms) {
       content = '所有节点均超时\n请检查网络后刷新';
     } else {
       const best = merged[0];
-      content += `🏆 最优节点: ${best.node}\n`;
+      content += `🏆 最优: ${best.node}\n`;
       content += `   TG ${formatMs(best.tgMs)} | X ${formatMs(best.xMs)}\n\n`;
       
-      content += `📊 Top ${Math.min(TOP_N, merged.length)} 排名:\n`;
+      content += `📊 Top ${Math.min(TOP_N, merged.length)}:\n`;
       merged.slice(0, TOP_N).forEach((r, i) => {
         const rank = i + 1;
         content += `${rank}. ${pickEmoji(r.avg)} ${r.node}\n`;
@@ -128,15 +141,15 @@ function pickEmoji(ms) {
     }
     
     $done({
-      title: '📡 TG/X节点测速排名',
+      title: '🚀 TG/X节点测速',
       content: content,
-      updateInterval: 300
+      updateInterval: 600
     });
     
   } catch (e) {
     $done({
-      title: '📡 TG/X节点测速',
-      content: '脚本错误: ' + e.message,
+      title: '🚀 TG/X节点测速',
+      content: '错误: ' + e.message,
       style: 'warning'
     });
   }
