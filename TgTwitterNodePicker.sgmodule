@@ -1,9 +1,104 @@
-#!name=TG/X 节点推荐测速
-#!desc=测试当前节点访问Telegram和Twitter的延迟
-#!version=1.0
+#!name=TG/X 节点测速推荐
+#!desc=自动测试各地区节点访问 Telegram 和 Twitter 的延迟，排名推荐最优节点
+#!version=2.0
+#!system=6.0.0
 
 [Script]
-🎯 节点推荐 = type=generic,timeout=15,script-path=https://raw.githubusercontent.com/ty7817/surge-scripts/main/TgTwitterNodePicker.js
+tgx-picker = type=generic,timeout=45,script-path=tgx-picker
 
 [Panel]
-节点推荐面板 = script-name=🎯 节点推荐,title=TG/X 节点推荐,content=请刷新,update-interval=300
+tgx-panel = script-name=tgx-picker,title=TG/X 节点推荐,content=请点击刷新开始测速,icon=target,icon-color=#ff9500,update-interval=600
+
+[Script "tgx-picker"]
+// TG/X Node Speed Test Picker
+const NODES = [
+  '香港节点',
+  '日本节点',
+  '美国节点',
+  '新加坡节点',
+  '台湾节点',
+  '韩国节点'
+];
+const TG_TEST_URL = 'https://api.telegram.org/';
+const X_TEST_URL = 'https://api.x.com/robots.txt';
+const TIMEOUT = 5000;
+
+function testNode(nodeName, url) {
+  return new Promise((resolve) => {
+    const start = Date.now();
+    $httpClient.get({
+      url: url,
+      policy: nodeName,
+      timeout: TIMEOUT,
+      headers: { 'User-Agent': 'Mozilla/5.0' }
+    }, function(err, resp, data) {
+      const cost = Date.now() - start;
+      if (err) {
+        resolve({ node: nodeName, ok: false, ms: 9999 });
+      } else {
+        resolve({ node: nodeName, ok: true, ms: cost });
+      }
+    });
+  });
+}
+
+async function main() {
+  try {
+    const results = [];
+    
+    for (const node of NODES) {
+      const tg = await testNode(node, TG_TEST_URL);
+      const x = await testNode(node, X_TEST_URL);
+      
+      if (tg.ok && x.ok) {
+        const avg = Math.round((tg.ms + x.ms) / 2);
+        results.push({
+          name: node,
+          tg: tg.ms,
+          x: x.ms,
+          avg: avg
+        });
+      } else {
+        results.push({
+          name: node,
+          tg: tg.ms,
+          x: x.ms,
+          avg: 9999,
+          fail: true
+        });
+      }
+    }
+    
+    const sorted = results.sort((a, b) => a.avg - b.avg);
+    
+    let txt = '🏆 推荐最优: ';
+    txt += sorted[0].fail ? '全部超时' : sorted[0].name;
+    txt += '\n\n';
+    
+    txt += '📊 延迟排名:\n';
+    sorted.forEach((r, i) => {
+      if (r.fail) {
+        txt += (i+1) + '. ❌ ' + r.name + ' (超时)\n';
+      } else {
+        const icon = r.avg < 500 ? '🟢' : r.avg < 1000 ? '🟡' : r.avg < 2000 ? '🟠' : '🔴';
+        txt += (i+1) + '. ' + icon + ' ' + r.name + ' (' + r.avg + 'ms)\n';
+        txt += '   TG: ' + r.tg + 'ms | X: ' + r.x + 'ms\n';
+      }
+    });
+    
+    $done({
+      title: 'TG/X 节点推荐',
+      content: txt,
+      updateInterval: 600
+    });
+    
+  } catch (e) {
+    $done({
+      title: 'TG/X 节点推荐',
+      content: '脚本错误: ' + e.message,
+      style: 'warning'
+    });
+  }
+}
+
+main();
