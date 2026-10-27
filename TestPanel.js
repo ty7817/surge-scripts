@@ -1,8 +1,8 @@
 // TG/X 节点测速推荐脚本
 // 通过 Surge HTTP API 获取所有节点，分别测试访问 Telegram 和 Twitter 的延迟
 
-const TG_URL = 'http://149.154.167.51'; // Telegram DC
-const TW_URL = 'https://api.twitter.com/'; // Twitter API
+const TG_URL = 'http://149.154.167.51';
+const TW_URL = 'https://api.twitter.com/';
 const API_BASE = 'http://127.0.0.1:6171';
 const API_AUTH = 'Basic dHkuMjAwNDAxMjA6';
 
@@ -40,7 +40,6 @@ function getAllProxies() {
                 const list = [];
                 for (let name in proxies) {
                     const p = proxies[name];
-                    // 只收集实际节点，不收集策略组
                     if (p.type !== 'Selector' && p.type !== 'URLTest' && p.type !== 'Fallback' && p.type !== 'LoadBalance') {
                         list.push(name);
                     }
@@ -64,15 +63,12 @@ async function main() {
         return;
     }
     
-    // 限制最多测试20个节点，避免超时
     const testList = proxies.slice(0, 20);
     const results = [];
     
     for (const name of testList) {
         const tg = await getDelay(TG_URL, name);
         const tw = await getDelay(TW_URL, name);
-        
-        // 综合评分：TG延迟 + TW延迟，越小越好
         const total = tg.delay + tw.delay;
         results.push({
             name: name,
@@ -83,10 +79,8 @@ async function main() {
         });
     }
     
-    // 按综合延迟排序
     results.sort((a, b) => a.total - b.total);
     
-    // 生成显示内容
     let content = '共测试' + results.length + '个节点:\n';
     content += '🥇 最优: ' + results[0].name + '\n';
     content += '   TG:' + results[0].tg + 'ms  X:' + results[0].tw + 'ms\n';
