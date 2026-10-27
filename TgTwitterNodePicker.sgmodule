@@ -1,9 +1,9 @@
-#!name=TGX Node Speed Test
-#!desc=Test Telegram and Twitter latency
+#!name=TG/X Speed Test
+#!desc=Test Telegram and Twitter latency ranking
 #!version=1.0
 
 [Script]
-tgx-picker = type=generic,timeout=60,script-path=https://raw.githubusercontent.com/ty7817/surge-scripts/main/TgTwitterNodePicker.js
+tgx-picker = type = generic, script-path = https://raw.githubusercontent.com/ty7817/surge-scripts/main/TgTwitterNodePicker.js, timeout = 60
 
 [Panel]
-tgx-panel = script-name=tgx-picker,title=TG/X Speed Test,content=Please refresh,update-interval=300
+TGX面板 = script-name = tgx-picker, title = TG/X Speed Test, content = Please refresh, update-interval = 300
