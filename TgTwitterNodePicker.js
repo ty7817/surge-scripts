@@ -1,82 +1,89 @@
-// TG/X 节点推荐 - 读取Surge自动测速结果
+// TG/X Node Speed Test Picker
 // Surge generic script
 
-const AUTH = 'Basic dHkuMjAwNDAxMjA6';
+const NODES = [
+  '香港节点',
+  '日本节点',
+  '美国节点',
+  '新加坡节点',
+  '台湾节点',
+  '韩国节点'
+];
+const TG_URL = 'https://api.telegram.org/';
+const X_URL = 'https://api.x.com/robots.txt';
 
-function apiGet(path) {
+function httpGet(url, policyName, cb) {
+  $httpClient.get({
+    url: url,
+    policy: policyName,
+    timeout: 4000,
+    headers: { 'User-Agent': 'Mozilla/5.0' }
+  }, function(err, resp, data) {
+    cb(err, resp);
+  });
+}
+
+function testNode(node) {
   return new Promise((resolve) => {
-    $httpClient.get({
-      url: 'http://127.0.0.1:6171' + path,
-      headers: { 'Authorization': AUTH },
-      timeout: 3000
-    }, (err, resp, body) => {
-      if (err) { resolve(null); return; }
-      try { resolve(JSON.parse(body)); }
-      catch (e) { resolve(null); }
+    const start = Date.now();
+    httpGet(TG_URL, node, function(err1, resp1) {
+      const tgMs = Date.now() - start;
+      const start2 = Date.now();
+      httpGet(X_URL, node, function(err2, resp2) {
+        const xMs = Date.now() - start2;
+        resolve({
+          name: node,
+          tg: err1 ? 9999 : tgMs,
+          x: err2 ? 9999 : xMs,
+          ok: !err1 && !err2
+        });
+      });
     });
   });
 }
 
 async function main() {
-  try {
-    const data = await apiGet('/v1/policies');
-    
-    if (!data) {
-      $done({
-        title: 'TG/X 节点推荐',
-        content: 'API连接失败\n请检查Surge设置',
-        icon: 'exclamationmark.triangle',
-        'icon-color': '#ff3b30'
-      });
-      return;
-    }
-    
-    let list = [];
-    if (Array.isArray(data)) list = data;
-    else if (data.policies) list = data.policies;
-    
-    // 找电报加速和Twitter最优
-    const tgGroup = list.find(p => p.name === '⚡ 电报加速');
-    const twGroup = list.find(p => p.name === '🐦 Twitter最优');
-    const mainGroup = list.find(p => p.name === '主节点');
-    
-    let txt = '🎯 Surge自动测速结果\n';
-    txt += '━━━━━━━━━━━━━━\n';
-    
-    if (tgGroup) {
-      txt += '📡 电报加速:\n';
-      txt += '   当前节点: ' + (tgGroup.current || tgGroup.selected || '自动选择') + '\n';
-      if (tgGroup.delay) txt += '   延迟: ' + tgGroup.delay + 'ms\n';
-    }
-    
-    txt += '\n';
-    
-    if (twGroup) {
-      txt += '🐦 Twitter最优:\n';
-      txt += '   当前节点: ' + (twGroup.current || twGroup.selected || '自动选择') + '\n';
-      if (twGroup.delay) txt += '   延迟: ' + twGroup.delay + 'ms\n';
-    }
-    
-    txt += '\n━━━━━━━━━━━━━━\n';
-    txt += '💡 Surge每300秒自动测速\n';
-    txt += '自动切换最快节点\n';
-    txt += '无需手动操作';
-    
-    $done({
-      title: 'TG/X 节点推荐',
-      content: txt,
-      icon: 'target',
-      'icon-color': '#ff9500'
-    });
-    
-  } catch (e) {
-    $done({
-      title: 'TG/X 节点推荐',
-      content: '错误: ' + e.message,
-      icon: 'exclamationmark.triangle',
-      'icon-color': '#ff3b30'
-    });
+  const results = [];
+  for (const node of NODES) {
+    const r = await testNode(node);
+    results.push(r);
   }
+  
+  const sorted = results.sort((a, b) => {
+    const aAvg = a.ok ? (a.tg + a.x) / 2 : 9999;
+    const bAvg = b.ok ? (b.tg + b.x) / 2 : 9999;
+    return aAvg - bAvg;
+  });
+  
+  let lines = [];
+  
+  if (sorted[0].ok) {
+    lines.push('🏆 推荐: ' + sorted[0].name);
+    lines.push('   TG ' + sorted[0].tg + 'ms | X ' + sorted[0].x + 'ms');
+    lines.push('');
+  } else {
+    lines.push('❌ 全部超时');
+    lines.push('');
+  }
+  
+  lines.push('📊 排名:');
+  sorted.forEach((r, i) => {
+    if (r.ok) {
+      const avg = Math.round((r.tg + r.x) / 2);
+      const icon = avg < 500 ? '🟢' : avg < 1000 ? '🟡' : avg < 2000 ? '🟠' : '🔴';
+      lines.push((i+1) + '. ' + icon + ' ' + r.name + ' (' + avg + 'ms)');
+      lines.push('   TG: ' + r.tg + 'ms | X: ' + r.x + 'ms');
+    } else {
+      lines.push((i+1) + '. ❌ ' + r.name + ' (超时)');
+    }
+  });
+  
+  $done({
+    title: 'TG/X 节点推荐',
+    content: lines.join('\n'),
+    icon: 'target',
+    'icon-color': '#ff9500'
+  });
 }
 
 main();
