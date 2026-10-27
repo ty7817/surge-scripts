@@ -1,0 +1,9 @@
+#!name=Twitter/Telegram 检测面板
+#!desc=TG & X 连通性检测面板
+#!version=1.0
+
+[Script]
+📡 社交服务检测 = type=generic,timeout=15,script-path=https://raw.githubusercontent.com/ty7817/surge-scripts/main/TgTwitterCheck.js
+
+[Panel]
+社交检测面板 = script-name=📡 社交服务检测,title=Twitter/Telegram检测,content=请刷新,update-interval=300
