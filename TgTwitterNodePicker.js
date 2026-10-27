@@ -1,13 +1,14 @@
-// Telegram & Twitter 节点推荐测速脚本
+// Telegram & Twitter 节点推荐测速脚本 v2
 // Surge generic script
 
 const SURGE_API = 'http://127.0.0.1:6171';
 const API_USER = 'ty.20040120';
 const TG_TEST_URL = 'https://t.me/';
 const X_TEST_URL = 'https://x.com/';
-const TIMEOUT = 5000;
-const CONCURRENCY = 8;
+const TIMEOUT = 4;
+const CONCURRENCY = 5;
 const TOP_N = 8;
+const MAX_NODES = 25;
 
 const authHeader = 'Basic ' + $text.base64Encode(API_USER + ':');
 
@@ -18,12 +19,21 @@ function fetchPolicies() {
       headers: { 'Authorization': authHeader },
       timeout: 3000
     }, (error, resp, data) => {
-      if (error) return resolve({ error: true, data: null });
+      if (error) return resolve({ error: 'API请求失败: ' + error, data: null });
       try {
         const json = JSON.parse(data);
-        resolve({ error: false, data: json });
+        // Surge API可能返回数组或对象
+        let policies = [];
+        if (Array.isArray(json)) {
+          policies = json;
+        } else if (json.policies) {
+          policies = json.policies;
+        } else if (json.proxies) {
+          policies = json.proxies;
+        }
+        resolve({ error: null, policies: policies });
       } catch (e) {
-        resolve({ error: true, data: null });
+        resolve({ error: 'JSON解析失败: ' + e.message + ' 原始数据: ' + (data || '空').substring(0, 100), data: null });
       }
     });
   });
@@ -35,15 +45,14 @@ function testNodeUrl(nodeName, url) {
     $httpClient.get({
       url: url,
       policy: nodeName,
-      timeout: TIMEOUT / 1000,
-      headers: { 'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X)' }
+      timeout: TIMEOUT,
+      headers: { 'User-Agent': 'Mozilla/5.0' }
     }, (error, response, body) => {
       const ms = Date.now() - start;
-      const size = body ? body.length : 0;
       if (error || !response) {
-        resolve({ ms: 9999, size: 0, ok: false });
+        resolve({ ms: 9999, ok: false });
       } else {
-        resolve({ ms: ms, size: size, ok: response.status < 500 });
+        resolve({ ms: ms, ok: response.status < 500 });
       }
     });
   });
@@ -82,18 +91,35 @@ function pickEmoji(ms) {
   try {
     const policiesRes = await fetchPolicies();
     
-    if (policiesRes.error || !policiesRes.data || !policiesRes.data.policies) {
+    if (policiesRes.error) {
       $done({
         title: '🎯 TG/X 节点推荐',
-        content: 'API连接失败\n请检查HTTP API是否开启',
+        content: 'API错误: ' + policiesRes.error,
         style: 'warning'
       });
       return;
     }
     
-    const allNodes = policiesRes.data.policies
-      .filter(p => !['Select', 'Smart', 'URLTest', 'Fallback', 'LoadBalance', 'Relay', 'SSID', 'Group'].includes(p.type))
+    let allNodes = policiesRes.policies
+      .filter(p => {
+        // 排除策略组，只保留实际节点
+        if (p.type && ['Select', 'Smart', 'URLTest', 'Fallback', 'LoadBalance', 'Relay', 'SSID', 'Group', 'Direct', 'Reject'].includes(p.type)) {
+          return false;
+        }
+        // 排除DIRECT等特殊节点
+        if (['DIRECT', 'REJECT', 'REJECT-DROP', 'COMPATIBLE'].includes(p.name)) {
+          return false;
+        }
+        return true;
+      })
       .map(p => p.name);
+    
+    if (allNodes.length === 0) {
+      // 如果过滤后为空，就用所有非DIRECT节点
+      allNodes = policiesRes.policies
+        .filter(p => !['DIRECT', 'REJECT', 'REJECT-DROP'].includes(p.name))
+        .map(p => p.name);
+    }
     
     if (allNodes.length === 0) {
       $done({
@@ -104,26 +130,22 @@ function pickEmoji(ms) {
       return;
     }
     
-    const testNodes = allNodes.slice(0, 40);
+    const testNodes = allNodes.slice(0, MAX_NODES);
     
-    const [tgResults, xResults] = await Promise.all([
-      batchTest(testNodes, TG_TEST_URL),
-      batchTest(testNodes, X_TEST_URL)
-    ]);
+    // 先测TG，再测X（避免并发太高）
+    const tgResults = await batchTest(testNodes, TG_TEST_URL);
+    const xResults = await batchTest(testNodes, X_TEST_URL);
     
     const merged = testNodes.map(node => {
-      const tg = tgResults.get(node) || { ms: 9999, size: 0, ok: false };
-      const x = xResults.get(node) || { ms: 9999, size: 0, ok: false };
+      const tg = tgResults.get(node) || { ms: 9999, ok: false };
+      const x = xResults.get(node) || { ms: 9999, ok: false };
       const avg = (tg.ms + x.ms) / 2;
-      const totalSize = tg.size + x.size;
       return { 
         node: node, 
         tgMs: tg.ms, 
         xMs: x.ms, 
         avg: avg, 
-        ok: tg.ok && x.ok,
-        tgSize: tg.size,
-        xSize: x.size
+        ok: tg.ok && x.ok
       };
     }).filter(r => r.ok)
       .sort((a, b) => a.avg - b.avg);
@@ -131,7 +153,7 @@ function pickEmoji(ms) {
     let content = '';
     
     if (merged.length === 0) {
-      content = '所有节点均超时\n请检查网络后刷新';
+      content = '所有节点均超时\n请检查网络后刷新\n\n共尝试 ' + testNodes.length + ' 个节点';
     } else {
       const best = merged[0];
       content += `🏆 推荐: ${best.node}\n`;
@@ -144,7 +166,7 @@ function pickEmoji(ms) {
         content += `   TG ${formatMs(r.tgMs)} | X ${formatMs(r.xMs)}\n`;
       });
       
-      content += `\n共测试 ${testNodes.length} 个节点`;
+      content += `\n共测试 ${testNodes.length} 节点，${merged.length} 个可用`;
     }
     
     $done({
