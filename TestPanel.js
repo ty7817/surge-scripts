@@ -1,22 +1,16 @@
-// 测试能否获取节点列表
-const API_BASE = 'http://127.0.0.1:6171';
-const API_AUTH = 'Basic dHkuMjAwNDAxMjA6';
+// 测试用$httpAPI获取节点列表
 
-$httpClient.get({
-    url: API_BASE + '/v1/proxies',
-    headers: { 'Authorization': API_AUTH }
-}, (err, resp, data) => {
-    if (err) {
+$httpAPI.get('/v1/proxies', (data) => {
+    if (!data) {
         $done({
             title: 'TG/X 节点推荐',
-            content: 'API调用失败: ' + err
+            content: 'API返回空数据'
         });
         return;
     }
     
     try {
-        const json = JSON.parse(data);
-        const proxies = json.proxies || {};
+        const proxies = data.proxies || {};
         const names = Object.keys(proxies);
         $done({
             title: 'TG/X 节点推荐',
@@ -25,7 +19,7 @@ $httpClient.get({
     } catch (e) {
         $done({
             title: 'TG/X 节点推荐',
-            content: 'JSON解析失败: ' + e.message + '\n返回: ' + data.substring(0, 100)
+            content: '解析失败: ' + e.message + '\n数据: ' + JSON.stringify(data).substring(0, 100)
         });
     }
 });
