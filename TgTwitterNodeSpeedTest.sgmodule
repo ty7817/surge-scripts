@@ -1,4 +1,4 @@
-#!name=TGX节点测速推荐
+#!name=TG/X节点测速推荐
 #!desc=自动测试各地区节点访问Twitter和Telegram的延迟与下载速度，综合排名推荐最优节点
 #!author=ty7817
 
