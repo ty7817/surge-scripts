@@ -1,10 +1,9 @@
 #!name=TGX节点测速推荐
 #!desc=自动测试各地区节点访问Twitter和Telegram的延迟与下载速度，综合排名推荐最优节点
 #!author=ty7817
-#!homepage=https://github.com/ty7817/surge-scripts
 
 [Script]
-TGXNodeSpeedTest = type=generic,timeout=120,script-path=https://raw.githubusercontent.com/ty7817/surge-scripts/main/TestPanel.js
+测试面板 = type=generic,timeout=120,script-path=https://raw.githubusercontent.com/ty7817/surge-scripts/main/TestPanel.js
 
 [Panel]
-TGXNodeSpeedTest面板 = script-name=TGXNodeSpeedTest,title=TGX 节点推荐,content=点击刷新开始测速,update-interval=300,style=info
+TGX节点推荐面板 = script-name=测试面板,title=TG/X 节点推荐,content=请刷新,update-interval=300
