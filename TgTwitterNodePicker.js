@@ -1,11 +1,10 @@
-// TG/X 全节点推荐测速 v8
+// TG/X Node Picker v9
 // Surge generic script
 
 const TG_URL = 'https://t.me/';
 const X_URL = 'https://x.com/';
 const CONCURRENCY = 5;
 const TIMEOUT = 4;
-// ty.20040120: 的base64
 const AUTH = 'Basic dHkuMjAwNDAxMjA6';
 
 function fetchNodes() {
@@ -13,6 +12,7 @@ function fetchNodes() {
     $httpClient.get({
       url: 'http://127.0.0.1:6171/v1/policies',
       headers: { 'Authorization': AUTH },
+      policy: 'DIRECT',
       timeout: 3000
     }, (err, resp, body) => {
       if (err) {
@@ -59,14 +59,14 @@ async function testAll(nodes, url) {
   return results;
 }
 
-(async () => {
+async function main() {
   try {
     const api = await fetchNodes();
     
     if (!api.ok) {
       $done({
-        title: '🎯 TG/X 节点推荐',
-        content: 'API错误: ' + api.err + '\n请检查Surge设置',
+        title: 'TG/X Node Picker',
+        content: 'API error: ' + api.err,
         style: 'warning'
       });
       return;
@@ -82,14 +82,14 @@ async function testAll(nodes, url) {
     
     if (nodes.length === 0) {
       $done({
-        title: '🎯 TG/X 节点推荐',
-        content: '节点为空\n共获取' + api.list.length + '条',
+        title: 'TG/X Node Picker',
+        content: 'No nodes found',
         style: 'warning'
       });
       return;
     }
     
-    const testNodes = nodes.slice(0, 25);
+    const testNodes = nodes.slice(0, 20);
     
     const tgMap = await testAll(testNodes, TG_URL);
     const xMap = await testAll(testNodes, X_URL);
@@ -108,30 +108,29 @@ async function testAll(nodes, url) {
     
     let txt = '';
     if (merged.length === 0) {
-      txt = '全部超时\n测了' + testNodes.length + '个节点';
+      txt = 'All timeout';
     } else {
-      txt += '🏆 ' + merged[0].name + '\n';
-      txt += '   TG ' + merged[0].tg + 'ms | X ' + merged[0].x + 'ms\n\n';
-      txt += '📊 Top 8:\n';
+      txt += 'Best: ' + merged[0].name + '\n';
+      txt += 'TG ' + merged[0].tg + 'ms | X ' + merged[0].x + 'ms\n\n';
       merged.slice(0, 8).forEach((r, i) => {
-        const e = r.avg < 300 ? '🟢' : r.avg < 600 ? '🟡' : r.avg < 1200 ? '🟠' : '🔴';
-        txt += (i+1) + '. ' + e + ' ' + r.name + '\n';
-        txt += '   TG ' + (r.tg>=9999?'超时':r.tg+'ms') + ' | X ' + (r.x>=9999?'超时':r.x+'ms') + '\n';
+        txt += (i+1) + '. ' + r.name + ' (' + Math.round(r.avg) + 'ms)\n';
       });
-      txt += '\n共测' + testNodes.length + '个节点，' + merged.length + '个可用';
+      txt += '\nTested ' + testNodes.length + ' nodes';
     }
     
     $done({
-      title: '🎯 TG/X 节点推荐',
+      title: 'TG/X Node Picker',
       content: txt,
       updateInterval: 600
     });
     
   } catch (e) {
     $done({
-      title: '🎯 TG/X 节点推荐',
-      content: '错误: ' + e.message,
+      title: 'TG/X Node Picker',
+      content: 'Error: ' + e.message,
       style: 'warning'
     });
   }
-})();
+}
+
+main();
