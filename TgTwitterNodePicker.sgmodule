@@ -1,9 +1,9 @@
-#!name=TG/X 节点推荐测速
-#!desc=测试各地区策略组访问 Telegram 和 Twitter 的延迟，推荐最优
-#!version=1.0
+#!name=TG/X Node Picker
+#!desc=Test Telegram and Twitter latency for all nodes
+#!version=2.0
 
 [Script]
-🎯 TG/X节点推荐 = type=generic,timeout=60,script-path=https://raw.githubusercontent.com/ty7817/surge-scripts/main/TgTwitterNodePicker.js
+tgx-picker = type=generic,timeout=60,script-path=https://raw.githubusercontent.com/ty7817/surge-scripts/main/TgTwitterNodePicker.js
 
 [Panel]
-节点推荐面板 = script-name=🎯 TG/X节点推荐,title=TG/X 节点推荐,content=点击刷新开始测速,icon=target,icon-color=#ff9500,update-interval=600
+tgx-panel = script-name=tgx-picker,title=TG/X 节点推荐,content=点击刷新开始测速,icon=target,icon-color=#ff9500,update-interval=600
