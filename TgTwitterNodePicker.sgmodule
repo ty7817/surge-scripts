@@ -1,10 +1,10 @@
 #!name=TG/X 节点测速推荐
 #!desc=自动测试各地区节点访问 Telegram 和 Twitter 的延迟，排名推荐最优节点
-#!version=2.0
+#!version=2.1
 #!system=6.0.0
 
 [Script]
-tgx-picker = type=generic,timeout=45,script-path=tgx-picker
+tgx-picker = type=generic,timeout=60,script-path=tgx-picker
 
 [Panel]
 tgx-panel = script-name=tgx-picker,title=TG/X 节点推荐,content=请点击刷新开始测速,icon=target,icon-color=#ff9500,update-interval=600
@@ -21,7 +21,7 @@ const NODES = [
 ];
 const TG_TEST_URL = 'https://api.telegram.org/';
 const X_TEST_URL = 'https://api.x.com/robots.txt';
-const TIMEOUT = 5000;
+const TIMEOUT = 4000;
 
 function testNode(nodeName, url) {
   return new Promise((resolve) => {
