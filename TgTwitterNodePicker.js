@@ -1,27 +1,22 @@
-// TG/X 全节点推荐测速 v7
+// TG/X 全节点推荐测速 v8
 // Surge generic script
 
 const TG_URL = 'https://t.me/';
 const X_URL = 'https://x.com/';
-const CONCURRENCY = 6;
+const CONCURRENCY = 5;
 const TIMEOUT = 4;
-
-function getAuth() {
-  const raw = 'ty.20040120:';
-  // 手动base64编码
-  const b64 = $text.base64Encode(raw);
-  return 'Basic ' + b64;
-}
+// ty.20040120: 的base64
+const AUTH = 'Basic dHkuMjAwNDAxMjA6';
 
 function fetchNodes() {
   return new Promise((resolve) => {
     $httpClient.get({
       url: 'http://127.0.0.1:6171/v1/policies',
-      headers: { 'Authorization': getAuth() },
+      headers: { 'Authorization': AUTH },
       timeout: 3000
     }, (err, resp, body) => {
       if (err) {
-        resolve({ ok: false, err: '连接失败: ' + err });
+        resolve({ ok: false, err: 'API连接失败' });
         return;
       }
       try {
@@ -31,7 +26,7 @@ function fetchNodes() {
         else if (json.policies) list = json.policies;
         resolve({ ok: true, list: list });
       } catch (e) {
-        resolve({ ok: false, err: '解析失败: ' + e.message + ' body: ' + (body||'空').substring(0,150) });
+        resolve({ ok: false, err: 'JSON解析失败' });
       }
     });
   });
@@ -71,13 +66,12 @@ async function testAll(nodes, url) {
     if (!api.ok) {
       $done({
         title: '🎯 TG/X 节点推荐',
-        content: 'API错误:\n' + api.err,
+        content: 'API错误: ' + api.err + '\n请检查Surge设置',
         style: 'warning'
       });
       return;
     }
     
-    // 过滤出实际节点（排除策略组）
     const nodes = api.list
       .filter(p => p.name && p.name !== 'DIRECT' && p.name !== 'REJECT')
       .filter(p => {
@@ -89,14 +83,13 @@ async function testAll(nodes, url) {
     if (nodes.length === 0) {
       $done({
         title: '🎯 TG/X 节点推荐',
-        content: '节点为空\nAPI返回 ' + api.list.length + ' 条记录',
+        content: '节点为空\n共获取' + api.list.length + '条',
         style: 'warning'
       });
       return;
     }
     
-    // 最多测30个节点
-    const testNodes = nodes.slice(0, 30);
+    const testNodes = nodes.slice(0, 25);
     
     const tgMap = await testAll(testNodes, TG_URL);
     const xMap = await testAll(testNodes, X_URL);
@@ -115,9 +108,9 @@ async function testAll(nodes, url) {
     
     let txt = '';
     if (merged.length === 0) {
-      txt = '全部超时\n测了 ' + testNodes.length + ' 个节点';
+      txt = '全部超时\n测了' + testNodes.length + '个节点';
     } else {
-      txt += '🏆 推荐: ' + merged[0].name + '\n';
+      txt += '🏆 ' + merged[0].name + '\n';
       txt += '   TG ' + merged[0].tg + 'ms | X ' + merged[0].x + 'ms\n\n';
       txt += '📊 Top 8:\n';
       merged.slice(0, 8).forEach((r, i) => {
@@ -125,7 +118,7 @@ async function testAll(nodes, url) {
         txt += (i+1) + '. ' + e + ' ' + r.name + '\n';
         txt += '   TG ' + (r.tg>=9999?'超时':r.tg+'ms') + ' | X ' + (r.x>=9999?'超时':r.x+'ms') + '\n';
       });
-      txt += '\n共测 ' + testNodes.length + ' 节点，' + merged.length + ' 可用';
+      txt += '\n共测' + testNodes.length + '个节点，' + merged.length + '个可用';
     }
     
     $done({
@@ -137,7 +130,7 @@ async function testAll(nodes, url) {
   } catch (e) {
     $done({
       title: '🎯 TG/X 节点推荐',
-      content: '异常: ' + e.message,
+      content: '错误: ' + e.message,
       style: 'warning'
     });
   }
