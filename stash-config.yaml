@@ -1,4 +1,4 @@
-# Stash 配置 v6 | 更新: 2026-11-15
+# Stash 配置 v6.1 | 更新: 2026-11-15
 mode: rule
 log-level: warning
 ipv6: false
@@ -77,8 +77,8 @@ proxy-providers:
     headers:
       User-Agent: clash-verge/v2.0.0
     filter: 🇭🇰|🇯🇵|🇸🇬|🇺🇸|🇹🇼|🇨🇳|🇰🇷|🇲🇾|🇻🇳|🇬🇧|香港|日本|新加坡|美国|台湾|韩国|马来|越南|英国
-    benchmark-url: http://connect.rom.miui.com/generate_204
-    benchmark-timeout: 3
+    benchmark-url: http://www.apple.com/library/test/success.html
+    benchmark-timeout: 5
   db:
     type: http
     url: https://xxl.m2-koala.sbs/s/97078ccdbfa44238b061078c2f2f35fc
@@ -87,8 +87,8 @@ proxy-providers:
     headers:
       User-Agent: clash-verge/v2.0.0
     filter: 🇭🇰|🇯🇵|🇸🇬|🇺🇸|🇹🇼|🇨🇳|🇰🇷|🇲🇾|🇻🇳|🇬🇧|香港|日本|新加坡|美国|台湾|韩国|马来|越南|英国
-    benchmark-url: http://connect.rom.miui.com/generate_204
-    benchmark-timeout: 3
+    benchmark-url: http://www.apple.com/library/test/success.html
+    benchmark-timeout: 5
   yf:
     type: http
     url: https://login.yfjc.xyz/api/v1/client/subscribe?token=5b38f7bed2857c419b4334a1a8a6cca0
@@ -97,8 +97,8 @@ proxy-providers:
     headers:
       User-Agent: clash-verge/v2.0.0
     filter: 🇭🇰|🇯🇵|🇸🇬|🇺🇸|🇹🇼|🇨🇳|🇰🇷|🇲🇾|🇻🇳|🇬🇧|香港|日本|新加坡|美国|台湾|韩国|马来|越南|英国
-    benchmark-url: http://connect.rom.miui.com/generate_204
-    benchmark-timeout: 3
+    benchmark-url: http://www.apple.com/library/test/success.html
+    benchmark-timeout: 5
 proxy-groups:
 - name: 主节点
   type: select
@@ -277,7 +277,7 @@ proxy-groups:
   - pq
   - db
   - yf
-  url: http://connect.rom.miui.com/generate_204
+  url: http://www.apple.com/library/test/success.html
   interval: 1800
   tolerance: 80
   lazy: true
@@ -362,7 +362,7 @@ proxy-groups:
   - db
   - yf
   filter: 🇭🇰|香港|HKBN|HKT|HK
-  url: http://connect.rom.miui.com/generate_204
+  url: http://www.apple.com/library/test/success.html
   interval: 1800
   tolerance: 80
   lazy: true
@@ -375,7 +375,7 @@ proxy-groups:
   - db
   - yf
   filter: 🇺🇸|美国|United States|USA|US
-  url: http://connect.rom.miui.com/generate_204
+  url: http://www.apple.com/library/test/success.html
   interval: 1800
   tolerance: 80
   lazy: true
@@ -388,7 +388,7 @@ proxy-groups:
   - db
   - yf
   filter: 🇯🇵|日本|Japan|东京|大阪|JP
-  url: http://connect.rom.miui.com/generate_204
+  url: http://www.apple.com/library/test/success.html
   interval: 1800
   tolerance: 80
   lazy: true
@@ -401,7 +401,7 @@ proxy-groups:
   - db
   - yf
   filter: 🇹🇼|台湾|臺灣|Taiwan|TW
-  url: http://connect.rom.miui.com/generate_204
+  url: http://www.apple.com/library/test/success.html
   interval: 1800
   tolerance: 80
   lazy: true
@@ -414,7 +414,7 @@ proxy-groups:
   - db
   - yf
   filter: 🇸🇬|新加坡|狮城|Singapore|SG
-  url: http://connect.rom.miui.com/generate_204
+  url: http://www.apple.com/library/test/success.html
   interval: 1800
   tolerance: 80
   lazy: true
@@ -427,7 +427,7 @@ proxy-groups:
   - db
   - yf
   filter: 🇰🇷|韩国|Korea|KR
-  url: http://connect.rom.miui.com/generate_204
+  url: http://www.apple.com/library/test/success.html
   interval: 1800
   tolerance: 80
   lazy: true
@@ -439,7 +439,7 @@ proxy-groups:
   - pq
   - db
   - yf
-  url: http://connect.rom.miui.com/generate_204
+  url: http://www.apple.com/library/test/success.html
   interval: 1800
   tolerance: 80
   lazy: true
@@ -452,7 +452,7 @@ proxy-groups:
   - pq
   - db
   - yf
-  url: http://connect.rom.miui.com/generate_204
+  url: http://www.apple.com/library/test/success.html
   interval: 1800
   tolerance: 80
   lazy: true
@@ -630,7 +630,7 @@ proxy-groups:
   - 美国节点
   - 日本节点
   - ⚙️ 我的节点
-  url: http://connect.rom.miui.com/generate_204
+  url: http://www.apple.com/library/test/success.html
   interval: 1800
   lazy: true
   icon: https://raw.githubusercontent.com/fmz200/wool_scripts/main/icons/apps/HentaiHome.png
