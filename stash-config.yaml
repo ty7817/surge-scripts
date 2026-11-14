@@ -8,6 +8,8 @@
 #   2. 所有组都加了 filter，节点名不含地区/机场占位信息（如"剩余流量"）的会被过滤掉。
 #   3. 规则末尾有 MATCH 兜底，不会出现"没匹配到就直连"的漏流量。
 #   4. 重写用 http.url-rewrite / http.header-rewrite；MitM 域名已列全。
+#   5. select 组 interval: 86400 + lazy：Stash 默认每 600s 递归测速（组套组），
+#      会一次测 400+ 节点，切换节点卡顿即由此造成。
 # =====================================================================
 mode: rule
 log-level: warning
@@ -89,7 +91,7 @@ proxy-providers:
       User-Agent: clash-verge/v2.0.0
     filter: 🇭🇰|🇯🇵|🇸🇬|🇺🇸|🇹🇼|🇨🇳|🇰🇷|🇲🇾|🇻🇳|🇬🇧|香港|日本|新加坡|美国|台湾|韩国|马来|越南|英国
     benchmark-url: http://connect.rom.miui.com/generate_204
-    benchmark-timeout: 5
+    benchmark-timeout: 3
   db:
     type: http
     url: https://xxl.m2-koala.sbs/s/97078ccdbfa44238b061078c2f2f35fc
@@ -99,7 +101,7 @@ proxy-providers:
       User-Agent: clash-verge/v2.0.0
     filter: 🇭🇰|🇯🇵|🇸🇬|🇺🇸|🇹🇼|🇨🇳|🇰🇷|🇲🇾|🇻🇳|🇬🇧|香港|日本|新加坡|美国|台湾|韩国|马来|越南|英国
     benchmark-url: http://connect.rom.miui.com/generate_204
-    benchmark-timeout: 5
+    benchmark-timeout: 3
   yf:
     type: http
     url: https://login.yfjc.xyz/api/v1/client/subscribe?token=5b38f7bed2857c419b4334a1a8a6cca0
@@ -109,7 +111,7 @@ proxy-providers:
       User-Agent: clash-verge/v2.0.0
     filter: 🇭🇰|🇯🇵|🇸🇬|🇺🇸|🇹🇼|🇨🇳|🇰🇷|🇲🇾|🇻🇳|🇬🇧|香港|日本|新加坡|美国|台湾|韩国|马来|越南|英国
     benchmark-url: http://connect.rom.miui.com/generate_204
-    benchmark-timeout: 5
+    benchmark-timeout: 3
 proxy-groups:
 - name: 主节点
   type: select
@@ -127,6 +129,8 @@ proxy-groups:
   - ⚙️ 我的节点
   - DIRECT
   icon: https://raw.githubusercontent.com/fmz200/wool_scripts/main/icons/Twoandz9/Xiaoheizi1.png
+  interval: 86400
+  lazy: true
 - name: 谷歌服务
   type: select
   proxies:
@@ -143,6 +147,8 @@ proxy-groups:
   - 一分
   - ⚙️ 我的节点
   icon: https://raw.githubusercontent.com/Koolson/Qure/master/IconSet/Color/Google_Search.png
+  interval: 86400
+  lazy: true
 - name: 苹果服务
   type: select
   proxies:
@@ -154,6 +160,8 @@ proxy-groups:
   - 日本节点
   - ⚙️ 我的节点
   icon: https://raw.githubusercontent.com/fmz200/wool_scripts/main/icons/apps/Apple_04.png
+  interval: 86400
+  lazy: true
 - name: ⚡ 全网最优
   type: url-test
   use:
@@ -161,7 +169,7 @@ proxy-groups:
   - db
   - yf
   url: http://connect.rom.miui.com/generate_204
-  interval: 600
+  interval: 1800
   tolerance: 80
   lazy: true
 - name: 香港节点
@@ -172,6 +180,8 @@ proxy-groups:
   - yf
   filter: 🇭🇰|香港|HKBN|HKT|HK
   icon: https://raw.githubusercontent.com/fmz200/wool_scripts/main/icons/flag/HK_02.png
+  interval: 86400
+  lazy: true
 - name: 美国节点
   type: select
   use:
@@ -180,6 +190,8 @@ proxy-groups:
   - yf
   filter: 🇺🇸|美国|United States|USA|US
   icon: https://raw.githubusercontent.com/fmz200/wool_scripts/main/icons/flag/US.png
+  interval: 86400
+  lazy: true
 - name: 日本节点
   type: select
   use:
@@ -188,6 +200,8 @@ proxy-groups:
   - yf
   filter: 🇯🇵|日本|Japan|东京|大阪|JP
   icon: https://raw.githubusercontent.com/fmz200/wool_scripts/main/icons/flag/JP_01.png
+  interval: 86400
+  lazy: true
 - name: 台湾节点
   type: select
   use:
@@ -196,6 +210,8 @@ proxy-groups:
   - yf
   filter: 🇹🇼|台湾|臺灣|Taiwan|TW
   icon: https://raw.githubusercontent.com/fmz200/wool_scripts/main/icons/flag/Taiwan.png
+  interval: 86400
+  lazy: true
 - name: 新加坡节点
   type: select
   use:
@@ -204,6 +220,8 @@ proxy-groups:
   - yf
   filter: 🇸🇬|新加坡|狮城|Singapore|SG
   icon: https://raw.githubusercontent.com/fmz200/wool_scripts/main/icons/flag/SG_01.png
+  interval: 86400
+  lazy: true
 - name: 韩国节点
   type: select
   use:
@@ -212,6 +230,8 @@ proxy-groups:
   - yf
   filter: 🇰🇷|韩国|Korea|KR
   icon: https://raw.githubusercontent.com/fmz200/wool_scripts/main/icons/flag/Korea.png
+  interval: 86400
+  lazy: true
 - name: ⚡ 电报加速
   type: url-test
   use:
@@ -219,7 +239,7 @@ proxy-groups:
   - db
   - yf
   url: https://api.telegram.org
-  interval: 600
+  interval: 1800
   tolerance: 80
   lazy: true
   filter: 🇭🇰|香港|HK|🇯🇵|日本|JP|🇸🇬|新加坡|SG|🇰🇷|韩国|KR|🇹🇼|台湾|TW
@@ -230,7 +250,7 @@ proxy-groups:
   - db
   - yf
   url: http://connect.rom.miui.com/generate_204
-  interval: 600
+  interval: 1800
   tolerance: 80
   lazy: true
   filter: 🇭🇰|香港|HK|🇯🇵|日本|JP|🇸🇬|新加坡|SG|🇺🇸|美国|US
@@ -241,7 +261,7 @@ proxy-groups:
   - db
   - yf
   url: http://connect.rom.miui.com/generate_204
-  interval: 600
+  interval: 1800
   tolerance: 80
   lazy: true
   filter: AI|ai|解锁|ChatGPT|OpenAI|GPT|Claude|Gemini|Copilot
@@ -250,16 +270,22 @@ proxy-groups:
   use:
   - pq
   icon: https://raw.githubusercontent.com/fmz200/wool_scripts/main/icons/apps/2020.png
+  interval: 86400
+  lazy: true
 - name: 多宝
   type: select
   use:
   - db
   icon: https://raw.githubusercontent.com/fmz200/wool_scripts/main/icons/apps/Acg.png
+  interval: 86400
+  lazy: true
 - name: 一分
   type: select
   use:
   - yf
   icon: https://raw.githubusercontent.com/fmz200/wool_scripts/main/icons/apps/ZhiPianRen.png
+  interval: 86400
+  lazy: true
 - name: ⚙️ 我的节点
   type: select
   use:
@@ -267,6 +293,8 @@ proxy-groups:
   - db
   - yf
   filter: 🇭🇰|🇯🇵|🇸🇬|🇺🇸|🇹🇼|🇨🇳|🇰🇷|🇲🇾|🇻🇳|🇬🇧|香港|日本|新加坡|美国|台湾|韩国|马来|越南|英国
+  interval: 86400
+  lazy: true
 - name: 电报信息
   type: select
   proxies:
@@ -284,6 +312,8 @@ proxy-groups:
   - 一分
   - ⚙️ 我的节点
   icon: https://raw.githubusercontent.com/fmz200/wool_scripts/main/icons/apps/Telegram_02.png
+  interval: 86400
+  lazy: true
 - name: 推特X
   type: select
   proxies:
@@ -301,6 +331,8 @@ proxy-groups:
   - 一分
   - ⚙️ 我的节点
   icon: https://raw.githubusercontent.com/fmz200/wool_scripts/main/icons/apps/X.png
+  interval: 86400
+  lazy: true
 - name: 油管视频
   type: select
   proxies:
@@ -317,6 +349,8 @@ proxy-groups:
   - 一分
   - ⚙️ 我的节点
   icon: https://raw.githubusercontent.com/fmz200/wool_scripts/main/icons/apps/YouTube_05.png
+  interval: 86400
+  lazy: true
 - name: TikTok短视频
   type: select
   proxies:
@@ -333,6 +367,8 @@ proxy-groups:
   - 一分
   - ⚙️ 我的节点
   icon: https://raw.githubusercontent.com/fmz200/wool_scripts/main/icons/apps/TikTok.png
+  interval: 86400
+  lazy: true
 - name: 奈飞视频
   type: select
   proxies:
@@ -349,6 +385,8 @@ proxy-groups:
   - 一分
   - ⚙️ 我的节点
   icon: https://raw.githubusercontent.com/fmz200/wool_scripts/main/icons/apps/Netflix.png
+  interval: 86400
+  lazy: true
 - name: Emby影院
   type: select
   proxies:
@@ -365,6 +403,8 @@ proxy-groups:
   - 一分
   - ⚙️ 我的节点
   icon: https://raw.githubusercontent.com/fmz200/wool_scripts/main/icons/apps/BlueSeaEmby.png
+  interval: 86400
+  lazy: true
 - name: GameBus视频网站
   type: select
   proxies:
@@ -381,6 +421,8 @@ proxy-groups:
   - 一分
   - ⚙️ 我的节点
   icon: https://raw.githubusercontent.com/fmz200/wool_scripts/main/icons/apps/Udn.png
+  interval: 86400
+  lazy: true
 - name: 动漫漫画
   type: select
   proxies:
@@ -397,6 +439,8 @@ proxy-groups:
   - 一分
   - ⚙️ 我的节点
   icon: https://raw.githubusercontent.com/fmz200/wool_scripts/main/icons/Twoandz9/Kuromis.png
+  interval: 86400
+  lazy: true
 - name: 哔哩哔哩
   type: select
   proxies:
@@ -406,6 +450,8 @@ proxy-groups:
   - 台湾节点
   - 新加坡节点
   icon: https://raw.githubusercontent.com/fmz200/wool_scripts/main/icons/apps/bilibili(2).png
+  interval: 86400
+  lazy: true
 - name: 游戏服务
   type: select
   proxies:
@@ -417,6 +463,8 @@ proxy-groups:
   - 新加坡节点
   - 日本节点
   icon: https://raw.githubusercontent.com/fmz200/wool_scripts/main/icons/apps/Game.png
+  interval: 86400
+  lazy: true
 - name: 微软服务
   type: select
   proxies:
@@ -431,6 +479,8 @@ proxy-groups:
   - 一分
   - DIRECT
   icon: https://raw.githubusercontent.com/fmz200/wool_scripts/main/icons/apps/Microsoft_04.png
+  interval: 86400
+  lazy: true
 - name: GitHub
   type: select
   proxies:
@@ -446,6 +496,8 @@ proxy-groups:
   - 一分
   - ⚙️ 我的节点
   icon: https://raw.githubusercontent.com/fmz200/wool_scripts/main/icons/apps/github_00.png
+  interval: 86400
+  lazy: true
 - name: 全球媒体
   type: select
   proxies:
@@ -462,6 +514,8 @@ proxy-groups:
   - 一分
   - ⚙️ 我的节点
   icon: https://raw.githubusercontent.com/fmz200/wool_scripts/main/icons/apps/HKMTMedia.png
+  interval: 86400
+  lazy: true
 - name: AI服务
   type: select
   proxies:
@@ -473,6 +527,8 @@ proxy-groups:
   - ⚙️ 我的节点
   - 主节点
   icon: https://raw.githubusercontent.com/fmz200/wool_scripts/main/icons/apps/ChatGPT4.png
+  interval: 86400
+  lazy: true
 - name: 广告拦截
   type: select
   proxies:
@@ -480,6 +536,8 @@ proxy-groups:
   - REJECT-DROP
   - DIRECT
   icon: https://raw.githubusercontent.com/fmz200/wool_scripts/main/icons/apps/ad(5).png
+  interval: 86400
+  lazy: true
 - name: AI备用
   type: fallback
   proxies:
@@ -488,7 +546,7 @@ proxy-groups:
   - 日本节点
   - ⚙️ 我的节点
   url: http://connect.rom.miui.com/generate_204
-  interval: 600
+  interval: 1800
   lazy: true
   icon: https://raw.githubusercontent.com/fmz200/wool_scripts/main/icons/apps/HentaiHome.png
 rule-providers:
