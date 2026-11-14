@@ -1,3 +1,4 @@
+# Stash 配置 v5 | 更新: 2026-11-15
 mode: rule
 log-level: warning
 ipv6: false
@@ -5,13 +6,12 @@ allow-lan: false
 dns:
   enable: true
   ipv6: false
-  default-nameserver:
+  # 按 Stash 官方《编写高效的配置文件》：移动端 DoH/DoT 更耗系统资源且延迟更高，
+  # 建议只配 1-2 个国内 UDP DNS；Fake-IP 已避免为代理请求做本地解析。
+  nameserver:
   - 223.5.5.5
   - 119.29.29.29
-  nameserver:
-  - https://doh.pub/dns-query
-  - https://dns.alidns.com/dns-query
-  skip-cert-verify: true
+  fake-ip-range: 198.18.0.1/16
   nameserver-policy:
     +.taobao.com: 223.5.5.5
     +.tmall.com: 223.5.5.5
@@ -830,7 +830,7 @@ rule-providers:
     path: ./rules/facebook.yaml
     interval: 86400
   origin:
-    type: http
+    type: http    
     behavior: classical
     format: yaml
     url: https://cdn.jsdelivr.net/gh/blackmatrix7/ios_rule_script@master/rule/Clash/Origin/Origin.yaml
@@ -995,6 +995,7 @@ rules:
 - RULE-SET,adlite,广告拦截
 - RULE-SET,direct,DIRECT
 - RULE-SET,wechat,DIRECT
+- RULE-SET,china,DIRECT
 - RULE-SET,stream_us,美国节点
 - RULE-SET,stream_eu,美国节点
 - RULE-SET,stream_jp,日本节点
@@ -1156,7 +1157,6 @@ rules:
 - RULE-SET,youtubemusic,油管视频
 - RULE-SET,bing,美国节点
 - RULE-SET,global,全球媒体
-- RULE-SET,china,DIRECT
 - IP-CIDR,0.0.0.0/32,REJECT
 - GEOIP,CN,DIRECT
 - MATCH,主节点
@@ -1165,7 +1165,7 @@ http:
   - ^https?://(www\.)?g\.cn https://www.google.com 302
   - ^https?://(www\.)?google\.cn https://www.google.com 302
   - ^https?://(www\.)?youtube\.com/s/yt/ https://www.youtube.com 302
-  - ^https?://(www\.)?youtube\.com/(watch\?.*)&feature=share(.*) https://www.youtube.com/watch$1$2 302
+  - ^https?://(www\.)?youtube\.com/(watch\?.*)&feature=share(.*) https://www.youtube.com/watch$1$2
   - ^https?://(www\.)?google\.com/url\?q=(.*) https://$2 302
   header-rewrite:
   - ^https://(www\.)?github\.com/ request-replace Accept-Language en-us
