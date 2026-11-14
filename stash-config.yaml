@@ -1,4 +1,4 @@
-# Stash 配置 v5 | 更新: 2026-11-15
+# Stash 配置 v6 | 更新: 2026-11-15
 mode: rule
 log-level: warning
 ipv6: false
@@ -284,6 +284,8 @@ proxy-groups:
   icon: https://raw.githubusercontent.com/Koolson/Qure/master/IconSet/Color/Speedtest.png
 - name: 香港节点
   type: select
+  proxies:
+  - 🇭🇰 香港最优
   use:
   - pq
   - db
@@ -294,6 +296,8 @@ proxy-groups:
   lazy: true
 - name: 美国节点
   type: select
+  proxies:
+  - 🇺🇸 美国最优
   use:
   - pq
   - db
@@ -304,6 +308,8 @@ proxy-groups:
   lazy: true
 - name: 日本节点
   type: select
+  proxies:
+  - 🇯🇵 日本最优
   use:
   - pq
   - db
@@ -314,6 +320,8 @@ proxy-groups:
   lazy: true
 - name: 台湾节点
   type: select
+  proxies:
+  - 🇹🇼 台湾最优
   use:
   - pq
   - db
@@ -324,6 +332,8 @@ proxy-groups:
   lazy: true
 - name: 新加坡节点
   type: select
+  proxies:
+  - 🇸🇬 新加坡最优
   use:
   - pq
   - db
@@ -334,6 +344,8 @@ proxy-groups:
   lazy: true
 - name: 韩国节点
   type: select
+  proxies:
+  - 🇰🇷 韩国最优
   use:
   - pq
   - db
@@ -342,7 +354,86 @@ proxy-groups:
   icon: https://raw.githubusercontent.com/Koolson/Qure/master/IconSet/Color/Korea.png
   interval: 86400
   lazy: true
+- name: 🇭🇰 香港最优
+  type: url-test
+  hidden: true
+  use:
+  - pq
+  - db
+  - yf
+  filter: 🇭🇰|香港|HKBN|HKT|HK
+  url: http://connect.rom.miui.com/generate_204
+  interval: 1800
+  tolerance: 80
+  lazy: true
+  icon: https://raw.githubusercontent.com/fmz200/wool_scripts/main/icons/flag/HK_02.png
+- name: 🇺🇸 美国最优
+  type: url-test
+  hidden: true
+  use:
+  - pq
+  - db
+  - yf
+  filter: 🇺🇸|美国|United States|USA|US
+  url: http://connect.rom.miui.com/generate_204
+  interval: 1800
+  tolerance: 80
+  lazy: true
+  icon: https://raw.githubusercontent.com/fmz200/wool_scripts/main/icons/flag/US.png
+- name: 🇯🇵 日本最优
+  type: url-test
+  hidden: true
+  use:
+  - pq
+  - db
+  - yf
+  filter: 🇯🇵|日本|Japan|东京|大阪|JP
+  url: http://connect.rom.miui.com/generate_204
+  interval: 1800
+  tolerance: 80
+  lazy: true
+  icon: https://raw.githubusercontent.com/fmz200/wool_scripts/main/icons/flag/JP_01.png
+- name: 🇹🇼 台湾最优
+  type: url-test
+  hidden: true
+  use:
+  - pq
+  - db
+  - yf
+  filter: 🇹🇼|台湾|臺灣|Taiwan|TW
+  url: http://connect.rom.miui.com/generate_204
+  interval: 1800
+  tolerance: 80
+  lazy: true
+  icon: https://raw.githubusercontent.com/Koolson/Qure/master/IconSet/Color/Taiwan.png
+- name: 🇸🇬 新加坡最优
+  type: url-test
+  hidden: true
+  use:
+  - pq
+  - db
+  - yf
+  filter: 🇸🇬|新加坡|狮城|Singapore|SG
+  url: http://connect.rom.miui.com/generate_204
+  interval: 1800
+  tolerance: 80
+  lazy: true
+  icon: https://raw.githubusercontent.com/fmz200/wool_scripts/main/icons/flag/SG_01.png
+- name: 🇰🇷 韩国最优
+  type: url-test
+  hidden: true
+  use:
+  - pq
+  - db
+  - yf
+  filter: 🇰🇷|韩国|Korea|KR
+  url: http://connect.rom.miui.com/generate_204
+  interval: 1800
+  tolerance: 80
+  lazy: true
+  icon: https://raw.githubusercontent.com/Koolson/Qure/master/IconSet/Color/Korea.png
 - name: 🐦 Twitter最优
+  hidden: true
   type: url-test
   use:
   - pq
@@ -355,6 +446,7 @@ proxy-groups:
   filter: 🇭🇰|香港|HK|🇯🇵|日本|JP|🇸🇬|新加坡|SG|🇺🇸|美国|US
   icon: https://raw.githubusercontent.com/Koolson/Qure/master/IconSet/Color/X.png
 - name: 🤖 AI解锁
+  hidden: true
   type: url-test
   use:
   - pq
@@ -531,6 +623,7 @@ proxy-groups:
   interval: 86400
   lazy: true
 - name: AI备用
+  hidden: true
   type: fallback
   proxies:
   - 🤖 AI解锁
