@@ -830,7 +830,7 @@ rule-providers:
     path: ./rules/facebook.yaml
     interval: 86400
   origin:
-    type: http    
+    type: http
     behavior: classical
     format: yaml
     url: https://cdn.jsdelivr.net/gh/blackmatrix7/ios_rule_script@master/rule/Clash/Origin/Origin.yaml
@@ -1165,7 +1165,7 @@ http:
   - ^https?://(www\.)?g\.cn https://www.google.com 302
   - ^https?://(www\.)?google\.cn https://www.google.com 302
   - ^https?://(www\.)?youtube\.com/s/yt/ https://www.youtube.com 302
-  - ^https?://(www\.)?youtube\.com/(watch\?.*)&feature=share(.*) https://www.youtube.com/watch$1$2
+  - ^https?://(www\.)?youtube\.com/(watch\?.*)&feature=share(.*) https://www.youtube.com/watch$1$2 302
   - ^https?://(www\.)?google\.com/url\?q=(.*) https://$2 302
   header-rewrite:
   - ^https://(www\.)?github\.com/ request-replace Accept-Language en-us
