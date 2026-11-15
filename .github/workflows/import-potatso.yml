@@ -12,12 +12,12 @@ jobs:
       - uses: actions/checkout@v4
       - name: fetch
         run: |
-          curl -sL --fail -o potatso-config.yaml "https://aka.doubaocdn.com/s/B1Vc5rDx9T"
+          curl -sL --fail -o potatso-config.yaml "https://aka.doubaocdn.com/s/JbuNyFXR0S"
           wc -c potatso-config.yaml
       - name: commit
         run: |
           git config user.name ty7817
           git config user.email 119729860+ty7817@users.noreply.github.com
           git add potatso-config.yaml
-          git commit -m "add: potatso-config.yaml" || true
+          git commit -m "update: potatso-config.yaml (fix groups)" || true
           git push || true
