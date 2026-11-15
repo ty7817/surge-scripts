@@ -1,5 +1,5 @@
 #!name=面板脚本修复合集
-#!desc=把 7 个面板/自动选路脚本统一走 jsdmirror CDN，修复 jsDelivr TLS(-1200) 与 raw 超时(-1001)
+#!desc=7 个脚本走 jsdmirror CDN；只保留真正会渲染的面板，自动化脚本不再占位
 #!author=ty7817
 #!category=网络优化
 
@@ -8,13 +8,11 @@ region-rank = type=cron,cronexp=0 0,8,12,20 * * *,script-path=https://cdn.jsdmir
 region-rank-network = type=event,event-name=network-changed,script-path=https://cdn.jsdmirror.com/gh/ty7817/surge-scripts@main/region-streaming-rank.js,timeout=300,wake-system=1,script-update-interval=86400
 streaming-auto-select = type=cron,cronexp=0 8 * * *,script-path=https://cdn.jsdmirror.com/gh/ty7817/surge-scripts@main/streaming-auto-select.js,timeout=120,wake-system=1,script-update-interval=86400
 流量统计面板 = type=generic,timeout=3,script-path=https://cdn.jsdmirror.com/gh/ty7817/surge-scripts@main/traffic-panel.js,argument=icon=gauge&color=%2334c759
-sub_info = type=generic,timeout=30,script-path=https://cdn.jsdmirror.com/gh/ty7817/surge-scripts@main/sub_info.js,argument=icon=arrow.up.arrow.down.circle&color=%23007aff
-media-check-lite = type=generic,timeout=20,script-path=https://cdn.jsdmirror.com/gh/ty7817/surge-scripts@main/media-check-lite.js,argument=icon=play.rectangle&color=%23ff3b30
-dns-check = type=generic,timeout=20,script-path=https://cdn.jsdmirror.com/gh/ty7817/surge-scripts@main/dns-check-opt.js,argument=icon=network&color=%2334c759
+sub_info = type=generic,timeout=30,script-path=https://cdn.jsdmirror.com/gh/ty7817/surge-scripts@main/sub_info.js,argument=icon=crown&color=%23FF9500
+media-check-lite = type=generic,timeout=20,script-path=https://cdn.jsdmirror.com/gh/ty7817/surge-scripts@main/media-check-lite.js
+dns-check = type=generic,timeout=20,script-path=https://cdn.jsdmirror.com/gh/ty7817/surge-scripts@main/dns-check-opt.js
 
 [Panel]
-地区节点排名 = script-name=region-rank, title=地区节点综合排名, content=请刷新, update-interval=600
-流媒体智能选点 = script-name=streaming-auto-select, title=流媒体智能选点, content=请刷新, update-interval=3600
 流量统计 = script-name=流量统计面板, title=流量统计, content=请刷新, update-interval=3, style=info
 订阅流量 = script-name=sub_info, title=订阅流量, content=请刷新, update-interval=600, style=info
 流媒体解锁 = script-name=media-check-lite, title=流媒体解锁检测, content=请刷新, update-interval=300
