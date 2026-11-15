@@ -1,0 +1,42 @@
+name: fix-jsdelivr-links
+on:
+  push:
+    paths:
+      - .github/workflows/fix-jsdelivr-links.yml
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  fix:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Rewrite jsDelivr links to raw
+        run: |
+          python3 - <<'PY'
+          import pathlib, re
+          pat = re.compile(r'https://(?:cdn|fastly)\.jsdelivr\.net/gh/([^/]+)/([^/\s@]+)@([^/\s]+)/')
+          changed = []
+          for p in pathlib.Path('.').rglob('*'):
+              if p.is_file() and p.suffix in {'.sgmodule', '.js', '.md', '.conf', '.yaml', '.yml'} and '.git' not in p.parts and '.github' not in p.parts:
+                  s = p.read_text(encoding='utf-8', errors='ignore')
+                  if 'jsdelivr' not in s:
+                      continue
+                  n = pat.sub(lambda m: f'https://raw.githubusercontent.com/{m.group(1)}/{m.group(2)}/{m.group(3)}/', s)
+                  if n != s:
+                      p.write_text(n, encoding='utf-8')
+                      changed.append(str(p))
+          print('\n'.join(changed))
+          PY
+      - name: Verify no jsdelivr left
+        run: |
+          ! grep -rn "jsdelivr" --include="*.sgmodule" .
+      - name: Commit
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git diff --cached --quiet || git commit -m "fix: rewrite jsDelivr script URLs to raw.githubusercontent.com"
+          git rm -q .github/workflows/fix-jsdelivr-links.yml
+          git commit -m "chore: remove one-off link fixer"
+          git push
