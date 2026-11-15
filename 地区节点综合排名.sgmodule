@@ -39,7 +39,7 @@
 
 [Script]
 # 每天0点、8点、12点、20点自动执行（定时）
-region-rank = type=cron,cronexp=0 0,8,12,20 * * *,script-path=https://cdn.jsdelivr.net/gh/ty7817/surge-scripts@e73a6960609d44ded72ffa64caec43315c7b512b/region-streaming-rank.js,timeout=300,wake-system=1,script-update-interval=86400
+region-rank = type=cron,cronexp=0 0,8,12,20 * * *,script-path=https://raw.githubusercontent.com/ty7817/surge-scripts/e73a6960609d44ded72ffa64caec43315c7b512b/region-streaming-rank.js,timeout=300,wake-system=1,script-update-interval=86400
 
 # Wi-Fi/流量切换时自动执行（网络变化事件）
-region-rank-network = type=event,event-name=network-changed,script-path=https://cdn.jsdelivr.net/gh/ty7817/surge-scripts@e73a6960609d44ded72ffa64caec43315c7b512b/region-streaming-rank.js,timeout=300,wake-system=1,script-update-interval=86400
+region-rank-network = type=event,event-name=network-changed,script-path=https://raw.githubusercontent.com/ty7817/surge-scripts/e73a6960609d44ded72ffa64caec43315c7b512b/region-streaming-rank.js,timeout=300,wake-system=1,script-update-interval=86400

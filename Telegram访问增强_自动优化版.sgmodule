@@ -35,7 +35,7 @@ tcp-fast-open = true
 
 [Script]
 # 自动测速选点：Telegram有流量时触发，自动切换最快节点（5分钟节流）
-telegram-auto-select = type=http-request,pattern=^https?://.*(telegram\.org|t\.me|tdesktop\.com|telegra\.ph|telegram-cdn\.org|cdn-telegram\.org),script-path=https://cdn.jsdelivr.net/gh/ty7817/surge-scripts@8e27ad4add37b84ca2a8300499fa3770740177d5/telegram-auto-select.js,timeout=60,script-update-interval=86400
+telegram-auto-select = type=http-request,pattern=^https?://.*(telegram\.org|t\.me|tdesktop\.com|telegra\.ph|telegram-cdn\.org|cdn-telegram\.org),script-path=https://raw.githubusercontent.com/ty7817/surge-scripts/8e27ad4add37b84ca2a8300499fa3770740177d5/telegram-auto-select.js,timeout=60,script-update-interval=86400
 
 [Rule]
 # ===== Telegram域名（31条）=====
