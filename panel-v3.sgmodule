@@ -1,0 +1,15 @@
+#!name=面板合集v3
+#!desc=只保留实测能出数据的面板：流量统计 / 订阅流量
+#!author=ty7817
+#!category=网络优化
+
+[Script]
+region-rank = type=cron,cronexp=0 0,8,12,20 * * *,script-path=https://cdn.jsdmirror.com/gh/ty7817/surge-scripts@main/region-streaming-rank.js,timeout=300,wake-system=1,script-update-interval=86400
+region-rank-network = type=event,event-name=network-changed,script-path=https://cdn.jsdmirror.com/gh/ty7817/surge-scripts@main/region-streaming-rank.js,timeout=300,wake-system=1,script-update-interval=86400
+streaming-auto-select = type=cron,cronexp=0 8 * * *,script-path=https://cdn.jsdmirror.com/gh/ty7817/surge-scripts@main/streaming-auto-select.js,timeout=120,wake-system=1,script-update-interval=86400
+流量统计面板 = type=generic,timeout=3,script-path=https://cdn.jsdmirror.com/gh/ty7817/surge-scripts@main/traffic-panel.js,argument=icon=gauge&color=%2334c759
+sub_info = type=generic,timeout=30,script-path=https://cdn.jsdmirror.com/gh/ty7817/surge-scripts@main/sub_info.js,argument=icon=crown&color=%23FF9500
+
+[Panel]
+流量统计 = script-name=流量统计面板, title=流量统计, content=请刷新, update-interval=3, style=info
+订阅流量 = script-name=sub_info, title=订阅流量, content=请刷新, update-interval=600, style=info
