@@ -274,7 +274,7 @@ proxy-groups:
   lazy: true
 - name: 奈飞视频
   type: select
-  proxies:
+  proxies: &id003
   - 主节点
   - ⚡ 全网最优
   - 香港节点
@@ -289,6 +289,12 @@ proxy-groups:
   - 一分
   - ⚙️ 我的节点
   icon: https://raw.githubusercontent.com/Koolson/Qure/master/IconSet/Color/Netflix.png
+  interval: 86400
+  lazy: true
+- name: 迪士尼
+  type: select
+  proxies: *id003
+  icon: https://raw.githubusercontent.com/Koolson/Qure/master/IconSet/Color/Disney.png
   interval: 86400
   lazy: true
 - name: ⚡ 全网最优
@@ -496,7 +502,6 @@ proxy-groups:
 - name: 赔钱
   type: select
   use:
-  - lx
   - pq
   icon: https://raw.githubusercontent.com/fmz200/wool_scripts/main/icons/apps/2020.png
   interval: 86400
@@ -671,14 +676,12 @@ proxy-groups:
   lazy: true
 - name: AI备用
   hidden: true
-  type: fallback
+  type: select
   proxies:
   - 🤖 AI解锁
   - 美国节点
   - 日本节点
   - ⚙️ 我的节点
-  url: http://www.apple.com/library/test/success.html
-  interval: 1800
   lazy: true
   icon: https://raw.githubusercontent.com/fmz200/wool_scripts/main/icons/apps/HentaiHome.png
 rule-providers:
@@ -1141,9 +1144,9 @@ rules:
 - RULE-SET,stream_jp,日本节点
 - RULE-SET,stream_kr,韩国节点
 - RULE-SET,stream_hk,香港节点
-- RULE-SET,disney,奈飞视频
+- RULE-SET,disney,迪士尼
 - RULE-SET,primevideo,奈飞视频
-- RULE-SET,hbo,奈飞视频
+- RULE-SET,hbo,迪士尼
 - RULE-SET,abematv,日本节点
 - RULE-SET,bahamut,台湾节点
 - DOMAIN-SUFFIX,github.com,GitHub
@@ -1232,8 +1235,8 @@ rules:
 - DOMAIN-SUFFIX,netflix.net,奈飞视频
 - DOMAIN-SUFFIX,nflxvideo.net,奈飞视频
 - DOMAIN-SUFFIX,nflximg.net,奈飞视频
-- DOMAIN-SUFFIX,disneyplus.com,奈飞视频
-- DOMAIN-SUFFIX,disney.com,奈飞视频
+- DOMAIN-SUFFIX,disneyplus.com,迪士尼
+- DOMAIN-SUFFIX,disney.com,迪士尼
 - DOMAIN-SUFFIX,primevideo.com,奈飞视频
 - DOMAIN-SUFFIX,spotify.com,全球媒体
 - DOMAIN-SUFFIX,scdn.co,全球媒体
@@ -1301,5 +1304,8 @@ rules:
 - RULE-SET,bing,美国节点
 - RULE-SET,global,全球媒体
 - IP-CIDR,0.0.0.0/32,REJECT
+- IP-ASN,45090,DIRECT,no-resolve
+- IP-ASN,132203,DIRECT,no-resolve
+- IP-ASN,132591,DIRECT,no-resolve
 - GEOIP,CN,DIRECT
 - MATCH,主节点
