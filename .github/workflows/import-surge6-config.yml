@@ -1,0 +1,25 @@
+name: import-surge6-config
+on:
+  push:
+    paths:
+      - .github/workflows/import-surge6-config.yml
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  import:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: curl -fsSL "https://aka.doubaocdn.com/s/JASFjLUoYX" -o surge6-config.conf
+      - run: |
+          test -s surge6-config.conf
+          grep -q '\[Proxy Group\]' surge6-config.conf
+      - run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add surge6-config.conf
+          git commit -m "Surge 6: rule sets point back to raw.githubusercontent.com"
+          git rm -q .github/workflows/import-surge6-config.yml
+          git commit -m "chore: remove one-off import workflow"
+          git push
