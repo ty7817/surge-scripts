@@ -70,10 +70,8 @@ proxy-providers:
     type: http
     interval: 86400
     path: ./providers/lx.yaml
-    headers: &id001
-      User-Agent: clash-verge/v2.0.0
     filter: 🇭🇰|🇯🇵|🇸🇬|🇺🇸|🇹🇼|🇨🇳|🇰🇷|🇲🇾|🇻🇳|🇬🇧|香港|日本|新加坡|美国|台湾|韩国|马来|越南|英国
-    health-check: &id002
+    health-check: &id001
       enable: true
       url: http://www.gstatic.com/generate_204
       interval: 300
@@ -83,16 +81,13 @@ proxy-providers:
     url: https://dasho.xn--cp3a08l.com/api/v1/pq/d48f7e0117d75b38f55c2f3be4e81162
     interval: 86400
     path: ./providers/pq.yaml
-    headers: *id001
     filter: 🇭🇰|🇯🇵|🇸🇬|🇺🇸|🇹🇼|🇨🇳|🇰🇷|🇲🇾|🇻🇳|🇬🇧|香港|日本|新加坡|美国|台湾|韩国|马来|越南|英国
-    health-check: *id002
+    health-check: *id001
   db:
     type: http
     url: https://xxl.m2-koala.sbs/s/97078ccdbfa44238b061078c2f2f35fc
     interval: 86400
     path: ./providers/db.yaml
-    headers:
-      User-Agent: clash-verge/v2.0.0
     filter: 🇭🇰|🇯🇵|🇸🇬|🇺🇸|🇹🇼|🇨🇳|🇰🇷|🇲🇾|🇻🇳|🇬🇧|香港|日本|新加坡|美国|台湾|韩国|马来|越南|英国
     health-check:
       enable: true
@@ -103,8 +98,6 @@ proxy-providers:
     url: https://login.yfjc.xyz/api/v1/client/subscribe?token=5b38f7bed2857c419b4334a1a8a6cca0
     interval: 86400
     path: ./providers/yf.yaml
-    headers:
-      User-Agent: clash-verge/v2.0.0
     filter: 🇭🇰|🇯🇵|🇸🇬|🇺🇸|🇹🇼|🇨🇳|🇰🇷|🇲🇾|🇻🇳|🇬🇧|香港|日本|新加坡|美国|台湾|韩国|马来|越南|英国
     health-check:
       enable: true
@@ -274,7 +267,7 @@ proxy-groups:
   lazy: true
 - name: 奈飞视频
   type: select
-  proxies: &id003
+  proxies: &id002
   - 主节点
   - ⚡ 全网最优
   - 香港节点
@@ -293,7 +286,7 @@ proxy-groups:
   lazy: true
 - name: 迪士尼
   type: select
-  proxies: *id003
+  proxies: *id002
   icon: https://raw.githubusercontent.com/Koolson/Qure/master/IconSet/Color/Disney.png
   interval: 86400
   lazy: true
@@ -669,7 +662,6 @@ proxy-groups:
   type: select
   proxies:
   - REJECT
-  - REJECT-DROP
   - DIRECT
   icon: https://raw.githubusercontent.com/fmz200/wool_scripts/main/icons/apps/ad(5).png
   interval: 86400
