@@ -1,5 +1,5 @@
 #!name=面板脚本修复合集
-#!desc=7 个脚本走 jsdmirror CDN；只保留真正会渲染的面板，自动化脚本不再占位
+#!desc=只保留能正常渲染的面板：流量统计 / 订阅流量；自动化脚本不占用面板位
 #!author=ty7817
 #!category=网络优化
 
@@ -9,11 +9,7 @@ region-rank-network = type=event,event-name=network-changed,script-path=https://
 streaming-auto-select = type=cron,cronexp=0 8 * * *,script-path=https://cdn.jsdmirror.com/gh/ty7817/surge-scripts@main/streaming-auto-select.js,timeout=120,wake-system=1,script-update-interval=86400
 流量统计面板 = type=generic,timeout=3,script-path=https://cdn.jsdmirror.com/gh/ty7817/surge-scripts@main/traffic-panel.js,argument=icon=gauge&color=%2334c759
 sub_info = type=generic,timeout=30,script-path=https://cdn.jsdmirror.com/gh/ty7817/surge-scripts@main/sub_info.js,argument=icon=crown&color=%23FF9500
-media-check-lite = type=generic,timeout=20,script-path=https://cdn.jsdmirror.com/gh/ty7817/surge-scripts@main/media-check-lite.js
-dns-check = type=generic,timeout=20,script-path=https://cdn.jsdmirror.com/gh/ty7817/surge-scripts@main/dns-check-opt.js
 
 [Panel]
 流量统计 = script-name=流量统计面板, title=流量统计, content=请刷新, update-interval=3, style=info
 订阅流量 = script-name=sub_info, title=订阅流量, content=请刷新, update-interval=600, style=info
-流媒体解锁 = script-name=media-check-lite, title=流媒体解锁检测, content=请刷新, update-interval=300
-DNS分流 = script-name=dns-check, title=DNS 分流矫正, content=请刷新, update-interval=5
