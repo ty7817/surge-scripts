@@ -1,0 +1,18 @@
+name: cleanup-tg-experiments
+on: push
+permissions:
+  contents: write
+jobs:
+  clean:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: remove experiments
+        run: |
+          git config user.name ty7817
+          git config user.email 119729860+ty7817@users.noreply.github.com
+          for p in tg-*.sgmodule tg-speed*.sgmodule tg-speed*.js tg-panel.js tg-auto.js tgp*.js tga*.js tgx-*.js tgx-*.sgmodule; do
+            ls $p >/dev/null 2>&1 && git rm -f $p || true
+          done
+          git commit -m "remove telegram acceleration experiments" || true
+          git push || true
