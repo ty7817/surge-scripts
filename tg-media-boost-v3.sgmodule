@@ -1,0 +1,10 @@
+#!name=Telegram 媒体加速 v3
+#!desc=修掉脚本调用 HTTP 客户端的写法（Surge 不支持下标调用，会导致脚本直接报错、面板停在“请刷新”）。后台每 5 分钟实测电报 DC 往返 + 前 3 名下载吞吐并自动切最快；面板显示实测与画质设置入口。
+#!system=ios
+
+[Script]
+Telegram媒体自动加速 = type=cron,cronexp="*/5 * * * *",wake-system=true,timeout=60,script-path=https://aka.doubaocdn.com/s/7g0z9QtdFs
+Telegram媒体面板 = type=generic,timeout=70,script-path=https://aka.doubaocdn.com/s/WVu3rL7deJ
+
+[Panel]
+Telegram 媒体加速 = script-name=Telegram媒体面板,title=Telegram 媒体加速,content=请刷新,update-interval=120,style=info
