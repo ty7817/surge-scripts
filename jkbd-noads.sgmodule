@@ -1,0 +1,41 @@
+#!name=驾考宝典 去广告
+#!desc=按驾考宝典官方《第三方SDK目录》里登记的广告 SDK 做域名拦截：穿山甲（头条广告）、百度联盟、优量汇（腾讯广告）、移动安全联盟监测，以及开屏广告域名 scs.kakamobi.cn。仅拦截广告素材与广告请求，不动题库、视频课、登录等业务域名。
+#!system=ios
+
+[Rule]
+# ── 驾考宝典自家开屏广告（社区抓包确认） ──
+DOMAIN,scs.kakamobi.cn,REJECT-TINYGIF
+DOMAIN-SUFFIX,ad.kakamobi.cn,REJECT-TINYGIF
+
+# ── 穿山甲 / 巨量引擎（头条广告 SDK） ──
+DOMAIN-SUFFIX,pangolin-sdk-toutiao.com,REJECT-TINYGIF
+DOMAIN-SUFFIX,pglstatp-toutiao.com,REJECT-TINYGIF
+DOMAIN-SUFFIX,gromore.cn,REJECT-TINYGIF
+DOMAIN-SUFFIX,csjplatform.com,REJECT-TINYGIF
+DOMAIN-SUFFIX,oceanengine.com,REJECT-TINYGIF
+DOMAIN,ads3-normal.zijieapi.com,REJECT-TINYGIF
+DOMAIN,ads3-normal-lf.zijieapi.com,REJECT-TINYGIF
+DOMAIN,ads3-normal-lq.zijieapi.com,REJECT-TINYGIF
+DOMAIN,ads5-normal.zijieapi.com,REJECT-TINYGIF
+DOMAIN,ads5-normal-hl.zijieapi.com,REJECT-TINYGIF
+DOMAIN,ads5-normal-lf.zijieapi.com,REJECT-TINYGIF
+DOMAIN,ads5-normal-lq.zijieapi.com,REJECT-TINYGIF
+DOMAIN,starkgame.zijieapi.com,REJECT-TINYGIF
+
+# ── 百度联盟（百度广告 SDK） ──
+DOMAIN-SUFFIX,union.baidu.com,REJECT-TINYGIF
+DOMAIN-SUFFIX,mobads.baidu.com,REJECT-TINYGIF
+DOMAIN-SUFFIX,cpro.baidu.com,REJECT-TINYGIF
+DOMAIN-SUFFIX,pos.baidu.com,REJECT-TINYGIF
+
+# ── 优量汇 / 腾讯广告 SDK ──
+DOMAIN-SUFFIX,gdt.qq.com,REJECT-TINYGIF
+DOMAIN-SUFFIX,e.qq.com,REJECT-TINYGIF
+DOMAIN-SUFFIX,adsmind.3g.qq.com,REJECT-TINYGIF
+
+# ── 兜底：常见广告交易/统计域名（仅广告用途，不影响业务） ──
+DOMAIN-SUFFIX,admobile.top,REJECT-TINYGIF
+DOMAIN-SUFFIX,bayescom.com,REJECT-TINYGIF
+DOMAIN-SUFFIX,voiceads.cn,REJECT-TINYGIF
+DOMAIN-SUFFIX,adkwai.com,REJECT-TINYGIF
+DOMAIN-SUFFIX,adukwai.com,REJECT-TINYGIF
