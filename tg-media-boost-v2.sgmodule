@@ -1,0 +1,10 @@
+#!name=Telegram 媒体加速 v2
+#!desc=脚本挂在豆包 CDN 直链（raw.githubusercontent.com 在部分线路取不到脚本）。后台每 5 分钟实测电报 DC 往返 + 前 3 名下载吞吐，自动切到最快；面板显示两项实测与画质设置入口。
+#!system=ios
+
+[Script]
+Telegram媒体自动加速 = type=cron,cronexp="*/5 * * * *",wake-system=true,timeout=60,script-path=https://aka.doubaocdn.com/s/1KZXU5EQi5
+Telegram媒体面板 = type=generic,timeout=70,script-path=https://aka.doubaocdn.com/s/7rdAt6V1jc
+
+[Panel]
+Telegram 媒体加速 = script-name=Telegram媒体面板,title=Telegram 媒体加速,content=请刷新,update-interval=120,style=info
