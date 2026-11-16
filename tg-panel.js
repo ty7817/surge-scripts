@@ -105,6 +105,23 @@ function pick(res) {
   return best;
 }
 
+// 真实吞吐：下载一个固定文件，按字节/耗时算 KB/s（同一策略出口）
+var THRU_URL = "https://telegram.org/img/t_logo.png";
+function measureThru(names, cb) {
+  var res = {}, pending = names.length;
+  if (!pending) return cb(res);
+  names.forEach(function (n) {
+    var t0 = Date.now();
+    $httpClient.get({ url: THRU_URL, policy: n, timeout: 12, "auto-redirect": false }, function (err, resp, data) {
+      var bytes = 0;
+      if (!err && data) bytes = (typeof data === "string") ? data.length : (data.byteLength || 0);
+      var ms = Date.now() - t0;
+      res[n] = (err || !bytes || ms <= 0) ? 0 : Math.round(bytes * 1000 / ms / 1024);
+      if (--pending === 0) cb(res);
+    });
+  });
+}
+
 function currentOf(group, cb) {
   api("GET", "/v1/policy_groups/select?group_name=" + encodeURIComponent(group), null, function (o, st, err) {
     cb(o && o.policy ? o.policy : null);
@@ -143,22 +160,39 @@ function runSide(g, urls, cb) {
   currentOf(g.name, function (cur) {
     if (cur && cands.indexOf(cur) < 0 && skip.indexOf(cur) < 0) cands.unshift(cur);
     measureAny(cands, urls, function (res) {
-      var best = pick(res);
-      if (!best) return cb({ text: g.name + "　全部超时（节点连不上目标域名）" });
-      var ms = Math.round(best.ms);
-      var curMs = res[cur];
-      var text, switched = false;
-      if (!cur) { text = g.name + "：未选择 → " + best.name + "　" + ms + "ms"; }
-      else if (cur === best.name) { text = g.name + "：" + cur + "　" + ms + "ms　已最优"; }
-      else if (curMs && curMs <= MAX_OK_MS && best.ms > curMs * IMPROVE_RATIO) { text = g.name + "：" + cur + "　" + Math.round(curMs) + "ms　无需切"; }
-      else { text = g.name + "：" + cur + (curMs ? "(" + Math.round(curMs) + "ms)" : "") + " → " + best.name + "　" + ms + "ms"; switched = true; }
+      var ok = Object.keys(res).filter(function (k) { return res[k] > 0 && res[k] <= MAX_OK_MS; });
+      ok.sort(function (a, b) { return res[a] - res[b]; });
+      if (!ok.length) return cb({ text: g.name + "　全部超时（节点连不上 Telegram）" });
 
-      var listText = "测速：" + Object.keys(res).map(function (k) { return k.replace("节点", "") + " " + (res[k] ? Math.round(res[k]) + "ms" : "失败"); }).join(" / ");
+      // 前 3 名再做真实吞吐：下载 telegram.org 的固定图片，算 KB/s
+      var top3 = ok.slice(0, 3);
+      measureThru(top3, function (thru) {
+        var bestName = ok[0], bestMs = res[bestName];
+        var winner = bestName;
+        top3.forEach(function (n) {
+          if (n === bestName) return;
+          var bs = thru[bestName] || 0, s = thru[n] || 0;
+          // 吞吐是它的 2 倍以上、延迟不超过最快那个的 1.25 倍 → 选吞吐更好的
+          if (s >= bs * 2 && res[n] <= bestMs * 1.25) winner = n;
+        });
 
-      if (!switched && cur === best.name) return cb({ text: text, detail: listText });
-      api("POST", "/v1/policy_groups/select", { group_name: g.name, policy: best.name }, function (o, st, err) {
-        if (err || st >= 400) return cb({ text: text, detail: listText + "（切换失败 " + (err || ("HTTP " + st)) + "）" });
-        cb({ text: text, detail: listText });
+        var ms = Math.round(res[winner]);
+        var curMs = res[cur];
+        var text, switched = false;
+        if (!cur) { text = g.name + "：未选择 → " + winner + "　" + ms + "ms"; }
+        else if (cur === winner) { text = g.name + "：" + cur + "　" + ms + "ms　已最优"; }
+        else if (curMs && curMs <= MAX_OK_MS && res[winner] > curMs * IMPROVE_RATIO) { text = g.name + "：" + cur + "　" + Math.round(curMs) + "ms　无需切"; }
+        else { text = g.name + "：" + cur + (curMs ? "(" + Math.round(curMs) + "ms)" : "") + " → " + winner + "　" + ms + "ms"; switched = true; }
+
+        var listText = "测速：" + Object.keys(res).map(function (k) { return k.replace("节点", "") + " " + (res[k] ? Math.round(res[k]) + "ms" : "失败"); }).join(" / ");
+        var thruText = top3.map(function (n) { return n.replace("节点", "") + " " + (thru[n] ? thru[n] + "KB/s" : "失败"); }).join(" / ");
+        var detail = listText + "\n· 吞吐：" + thruText;
+
+        if (!switched && cur === winner) return cb({ text: text, detail: detail });
+        api("POST", "/v1/policy_groups/select", { group_name: g.name, policy: winner }, function (o, st, err) {
+          if (err || st >= 400) return cb({ text: text, detail: detail + "（切换失败 " + (err || ("HTTP " + st)) + "）" });
+          cb({ text: text, detail: detail });
+        });
       });
     });
   });
@@ -167,17 +201,17 @@ function runSide(g, urls, cb) {
 (function main() {
   api("GET", "/v1/policy_groups", null, function (o, st, err) {
     if (err || st >= 400) {
-      return $done({ title: "Telegram 智能选路", content: "❌ 本机 API 无响应：" + (err || ("HTTP " + st)), icon: "exclamationmark.triangle", "icon-color": "#FF3B30" });
+      return $done({ title: "Telegram 加速", content: "❌ 本机 API 无响应：" + (err || ("HTTP " + st)), icon: "exclamationmark.triangle", "icon-color": "#FF3B30" });
     }
     var groups = parseGroups(o);
     var tg = findGroup(groups, TG_PAT);
     if (!tg) {
-      return $done({ title: "Telegram 智能选路", content: "❌ 没找到 Telegram 分组（共 " + groups.length + " 个）", icon: "exclamationmark.triangle", "icon-color": "#FF3B30" });
+      return $done({ title: "Telegram 加速", content: "❌ 没找到 Telegram 分组（共 " + groups.length + " 个）", icon: "exclamationmark.triangle", "icon-color": "#FF3B30" });
     }
     runSide(tg, TG_URLS, function (r) {
       var lines = [r.text];
       if (r.detail) lines.push("· " + r.detail);
-      $done({ title: "Telegram 智能选路", content: lines.join("\n"), icon: "bolt.horizontal.circle", "icon-color": "#FF9500" });
+      $done({ title: "Telegram 加速", content: lines.join("\n"), icon: "bolt.horizontal.circle", "icon-color": "#FF9500" });
     });
   });
 })();
