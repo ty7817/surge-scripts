@@ -1,0 +1,10 @@
+#!name=Telegram 媒体加速 v4
+#!desc=脚本改挂 jsDelivr（gcore 节点，国内可达），并加超时兜底与异常捕获：即使内部出错，面板也会显示原因而不是一直“请刷新”。后台每 5 分钟测电报 DC 往返 + 前 3 名下载吞吐并自动切最快。
+#!system=ios
+
+[Script]
+Telegram媒体自动加速 = type=cron,cronexp="*/5 * * * *",wake-system=true,timeout=60,script-path=https://gcore.jsdelivr.net/gh/ty7817/surge-scripts@main/tga2.js
+Telegram媒体面板 = type=generic,timeout=70,script-path=https://gcore.jsdelivr.net/gh/ty7817/surge-scripts@main/tgp2.js
+
+[Panel]
+Telegram 媒体加速 = script-name=Telegram媒体面板,title=Telegram 媒体加速,content=请刷新,update-interval=120,style=info
