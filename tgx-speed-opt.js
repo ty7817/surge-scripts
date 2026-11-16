@@ -28,6 +28,7 @@ var X_REGIONS = ["香港节点", "日本节点", "新加坡节点", "美国节�
 var IMPROVE_RATIO = 0.85;   // 新组要比当前快 15% 才切
 var MAX_OK_MS = 600;        // 超过 600ms 视为不可用，不切
 var MIN_SWITCH_MS = 0;
+var CHANGED = false;   // 本次是否真的切换过，只有切换才发通知
 
 function apiGet(path, cb) {
   $httpClient.get({ url: API + path, headers: HDR }, function (err, resp, data) {
@@ -112,6 +113,7 @@ function readCurrent(group, cb) {
 
 function switchGroup(group, policy, cb) {
   apiPost("/v1/policy_groups/select", { group_name: group, policy: policy }, function (err, resp, data) {
+    if (!err) CHANGED = true;
     cb(!err);
   });
 }
@@ -174,7 +176,7 @@ function runOne(groupName, regions, url, storeKey, cb) {
       var tm = $persistentStore.read("tgx_tg_ms") || "-";
       var x = $persistentStore.read("tgx_x_best") || "-";
       var xm = $persistentStore.read("tgx_x_ms") || "-";
-      $notification.post("TG/X 智能选路", "TG: " + t + " " + tm + "ms", "X: " + x + " " + xm + "ms");
+      if (CHANGED) $notification.post("TG/X 已切换", "TG: " + t + " " + tm + "ms", "X: " + x + " " + xm + "ms");
       $done();
     });
   });
