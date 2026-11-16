@@ -1,0 +1,9 @@
+#!name=TG/X 智能选路 v7
+#!desc=打开面板即按策略发真实请求，用 telegram / twitter 域名实测每个地区组的往返耗时并切到最快的组；主测试地址不通时自动换备用地址重测。
+#!system=ios
+
+[Script]
+TGX实时面板 = type=generic,timeout=70,script-path=https://cdn.jsdmirror.com/gh/ty7817/surge-scripts@main/tgx-live5.js
+
+[Panel]
+TG/X 选路 = script-name=TGX实时面板,title=TG / X 智能选路,content=请刷新,update-interval=300,style=info
