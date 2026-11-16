@@ -1,0 +1,11 @@
+#!name=TG/X 智能选路
+#!desc=用 telegram / twitter 真实地址给地区组测速，自动把「📡 Telegram 专线」「🐦 X 专线」切到最快的地区组。依赖 profile 已开启 http-api。
+#!system=ios
+
+[Script]
+TGX自动选路 = type=cron,cronexp=*/10 * * * *,timeout=120,wake-system=1,script-update-interval=86400,script-path=https://cdn.jsdmirror.com/gh/ty7817/surge-scripts@main/tgx-speed-opt.js
+TGX网络切换 = type=event,event-name=network-changed,timeout=120,wake-system=1,script-update-interval=86400,script-path=https://cdn.jsdmirror.com/gh/ty7817/surge-scripts@main/tgx-speed-opt.js
+TGX面板 = type=generic,timeout=5,script-path=https://cdn.jsdmirror.com/gh/ty7817/surge-scripts@main/tgx-panel.js
+
+[Panel]
+TG/X 选路 = script-name=TGX面板,title=TG / X 智能选路,content=请刷新,update-interval=600,style=info
