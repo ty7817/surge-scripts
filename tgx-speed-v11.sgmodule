@@ -1,9 +1,0 @@
-#!name=TG/X 智能选路 v11
-#!desc=打开面板即按策略发真实请求测速：Telegram 用 api.telegram.org，X 用 api.x.com；优先操作规则真正指向的 select 组（电报信息 / 推特X），组内所有成员含 smart 组一起测，选最快。
-#!system=ios
-
-[Script]
-TGX实时面板 = type=generic,timeout=70,script-path=https://cdn.jsdmirror.com/gh/ty7817/surge-scripts@main/tgx-live9.js
-
-[Panel]
-TG/X 选路 = script-name=TGX实时面板,title=TG / X 智能选路,content=请刷新,update-interval=300,style=info

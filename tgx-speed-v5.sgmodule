@@ -1,9 +1,0 @@
-#!name=TG/X 智能选路 v5
-#!desc=打开面板即用 telegram / twitter 真实地址测速并自动切换 Telegram / X 分组；组测速被 API 拒绝时自动改测真实节点再映射回地区组。依赖 profile 已开启 http-api。
-#!system=ios
-
-[Script]
-TGX实时面板 = type=generic,timeout=45,script-path=https://cdn.jsdmirror.com/gh/ty7817/surge-scripts@main/tgx-live3.js
-
-[Panel]
-TG/X 选路 = script-name=TGX实时面板,title=TG / X 智能选路,content=请刷新,update-interval=300,style=info

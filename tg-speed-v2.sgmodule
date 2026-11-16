@@ -1,9 +1,0 @@
-#!name=Telegram 智能选路 v2
-#!desc=只保留 Telegram（推特已删除）。打开面板即按成员发真实请求，用 api.telegram.org 实测每个成员的真实往返耗时，比当前快 5% 就自动切到最快的那个。
-#!system=ios
-
-[Script]
-Telegram实时面板 = type=generic,timeout=70,script-path=https://cdn.jsdmirror.com/gh/ty7817/surge-scripts@main/tg-speed2.js
-
-[Panel]
-Telegram 选路 = script-name=Telegram实时面板,title=Telegram 智能选路,content=请刷新,update-interval=300,style=info
