@@ -1,0 +1,23 @@
+name: import-surge
+on:
+  push:
+    paths:
+      - '.github/workflows/import-surge.yml'
+permissions:
+  contents: write
+jobs:
+  import:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: fetch
+        run: |
+          curl -sL --fail -o surge6-config.conf "https://aka.doubaocdn.com/s/VTkiGskOTR"
+          wc -c surge6-config.conf
+      - name: commit
+        run: |
+          git config user.name ty7817
+          git config user.email 119729860+ty7817@users.noreply.github.com
+          git add surge6-config.conf
+          git commit -m "opt: TG/X dedicated groups + rules" || true
+          git push || true
