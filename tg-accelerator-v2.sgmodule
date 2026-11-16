@@ -1,0 +1,10 @@
+#!name=Telegram 加速 v2
+#!desc=针对 Telegram 看视频 / 出图片预览：后台每 10 分钟实测电报线路延迟并自动切到最快节点；面板随时查看各组实测数据。脚本走 GitHub 原链（jsdmirror 对新文件会 404）。
+#!system=ios
+
+[Script]
+Telegram自动加速 = type=cron,cronexp="*/10 * * * *",wake-system=true,timeout=60,script-path=https://raw.githubusercontent.com/ty7817/surge-scripts/main/tg-auto.js
+Telegram加速面板 = type=generic,timeout=70,script-path=https://raw.githubusercontent.com/ty7817/surge-scripts/main/tg-panel.js
+
+[Panel]
+Telegram 加速 = script-name=Telegram加速面板,title=Telegram 加速,content=请刷新,update-interval=180,style=info
