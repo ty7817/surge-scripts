@@ -1,0 +1,25 @@
+name: import-tgx
+on:
+  push:
+    paths:
+      - '.github/workflows/import-tgx.yml'
+permissions:
+  contents: write
+jobs:
+  import:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: fetch
+        run: |
+          curl -sL --fail -o tgx-speed-opt.js "https://aka.doubaocdn.com/s/AIU9FyYKdM"
+          curl -sL --fail -o tgx-panel.js "https://aka.doubaocdn.com/s/4Ugwr3nupR"
+          curl -sL --fail -o tgx-speed.sgmodule "https://aka.doubaocdn.com/s/UCsRUljN7B"
+          wc -c tgx-speed-opt.js tgx-panel.js tgx-speed.sgmodule
+      - name: commit
+        run: |
+          git config user.name ty7817
+          git config user.email 119729860+ty7817@users.noreply.github.com
+          git add tgx-speed-opt.js tgx-panel.js tgx-speed.sgmodule
+          git commit -m "add: TG/X smart routing module" || true
+          git push || true
