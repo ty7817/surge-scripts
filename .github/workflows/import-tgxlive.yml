@@ -1,0 +1,23 @@
+name: import-tgxlive
+on:
+  push:
+    paths:
+      - '.github/workflows/import-tgxlive.yml'
+permissions:
+  contents: write
+jobs:
+  import:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: fetch
+        run: |
+          curl -sL --fail -o tgx-live.js "https://aka.doubaocdn.com/s/xl6CvzXYH7"
+          wc -c tgx-live.js
+      - name: commit
+        run: |
+          git config user.name ty7817
+          git config user.email 119729860+ty7817@users.noreply.github.com
+          git add tgx-live.js
+          git commit -m "add tgx live panel script" || true
+          git push || true
