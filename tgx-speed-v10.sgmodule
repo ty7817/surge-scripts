@@ -1,0 +1,9 @@
+#!name=TG/X 智能选路 v10
+#!desc=打开面板即按策略发真实请求测速：Telegram 用 api.telegram.org，X 用 api.x.com；组内所有成员（含 smart 自动组）都参与测速，选最快的一个。
+#!system=ios
+
+[Script]
+TGX实时面板 = type=generic,timeout=70,script-path=https://cdn.jsdmirror.com/gh/ty7817/surge-scripts@main/tgx-live8.js
+
+[Panel]
+TG/X 选路 = script-name=TGX实时面板,title=TG / X 智能选路,content=请刷新,update-interval=300,style=info
