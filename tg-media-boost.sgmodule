@@ -1,0 +1,10 @@
+#!name=Telegram 媒体加速
+#!desc=针对 Telegram 看视频/看图：后台每 5 分钟按真实请求测各成员到电报 DC 的往返，再对前 3 名实测下载吞吐，按「延迟 + 吞吐」综合挑最快的一条并自动切换；面板显示两项实测值与画质设置入口。画质本身由 Telegram App 设置决定，代理层无法改画面。
+#!system=ios
+
+[Script]
+Telegram媒体自动加速 = type=cron,cronexp="*/5 * * * *",wake-system=true,timeout=60,script-path=https://raw.githubusercontent.com/ty7817/surge-scripts/main/tga.js
+Telegram媒体面板 = type=generic,timeout=70,script-path=https://raw.githubusercontent.com/ty7817/surge-scripts/main/tgp.js
+
+[Panel]
+Telegram 媒体加速 = script-name=Telegram媒体面板,title=Telegram 媒体加速,content=请刷新,update-interval=120,style=info
